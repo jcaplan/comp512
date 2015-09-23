@@ -4,9 +4,9 @@ import java.util.*;
 import java.io.*;
 
 
-public class NewClient extends WSClient {
+public class MWClient extends WSClient {
 
-    public NewClient(String serviceName, String serviceHost, int servicePort) 
+    public MWClient(String serviceName, String serviceHost, int servicePort) 
     throws Exception {
         super(serviceName, serviceHost, servicePort);
     }

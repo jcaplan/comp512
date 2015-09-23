@@ -1,13 +1,15 @@
-package client;
+package middleware.ws;
+
+import client.*;
 
 public class ClientThread extends Thread {
 
-	NewClient client;
+	MWClient client;
 
 
 	public ClientThread(String serviceName, String serviceHost, int servicePort){
 		try{
-			this.client = new NewClient(serviceName,serviceHost,servicePort);
+			this.client = new MWClient(serviceName,serviceHost,servicePort);
 		} catch(Exception e){
 			e.printStackTrace();
 		}

@@ -8,5 +8,6 @@
       name="ResourceManager"
       implementation="server.ResourceManagerImpl"
       url-pattern="/service"/>
+  
 
 </endpoints>

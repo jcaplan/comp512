@@ -1,6 +1,6 @@
-package middleware.ws;
+package middleware.server.ws;
 
-import client.*;
+import middleware.client.*;
 
 import java.io.File;
 import org.apache.catalina.LifecycleException;

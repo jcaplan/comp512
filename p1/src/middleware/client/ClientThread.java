@@ -1,6 +1,5 @@
-package middleware.ws;
+package middleware.client;
 
-import client.*;
 
 public class ClientThread extends Thread {
 

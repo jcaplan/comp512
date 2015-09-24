@@ -1,4 +1,4 @@
-package middleware.ws;
+package middleware.client;
 
 import java.util.*;
 import java.io.*;

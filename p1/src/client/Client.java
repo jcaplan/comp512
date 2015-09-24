@@ -4,7 +4,7 @@ import java.util.*;
 import java.io.*;
 
 
-public class Client extends WSClient {
+public class Client extends client.WSClient {
 
     public Client(String serviceName, String serviceHost, int servicePort) 
     throws Exception {

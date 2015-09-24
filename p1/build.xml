@@ -17,6 +17,8 @@
     <property name="server-service.name" value="rm"/>
     <property name="server-service.host" value="localhost"/>
     <property name="server-service.port" value="8080"/>
+    <property name="server.dir" value="${basedir}/src/server"/>
+    <property name="middleware.dir" value="${basedir}/src/middleware/server"/>
 
     <path id="jaxws.classpath">
         <pathelement location="${java.home}/../lib/tools.jar"/>
@@ -69,13 +71,26 @@
 
    
 
-    <target name="create-war">
+    <target name="create-war-server">
         <war 
             warfile="${basedir}/build/war/${server-service.name}.war" 
-            webxml="etc/web.xml">
-            <webinf dir="${basedir}/etc" includes="sun-jaxws.xml"/>
+            webxml="${server.dir}/etc/web.xml">
+            <webinf dir="${server.dir}/etc" includes="sun-jaxws.xml"/>
             <zipfileset
-                    dir="${basedir}/etc"
+                    dir="${server.dir}/etc"
+                    includes="*.wsdl, *.xsd"
+                    prefix="WEB-INF/wsdl"/>
+            <classes dir="${basedir}/build/classes"/>
+        </war>
+    </target>
+
+     <target name="create-war-middleware">
+        <war 
+            warfile="${basedir}/build/war/${server-service.name}.war" 
+            webxml="${middleware.dir}/etc/web.xml">
+            <webinf dir="${middleware.dir}/etc" includes="sun-jaxws.xml"/>
+            <zipfileset
+                    dir="${middleware.dir}/etc"
                     includes="*.wsdl, *.xsd"
                     prefix="WEB-INF/wsdl"/>
             <classes dir="${basedir}/build/classes"/>
@@ -111,7 +126,7 @@
     <target name="server" depends="setup">
         <antcall target="clean"/>
         <antcall target="build-server"/>
-        <antcall target="create-war"/>
+        <antcall target="create-war-server"/>
         <antcall target="deploy-war"/>
         <antcall target="start-tomcat"/>        
     </target>
@@ -124,7 +139,7 @@
                 verbose="${verbose}"
                 destdir="${basedir}/build/classes"
                 srcdir="${basedir}/src"
-                includes="middleware/**,server/*"
+                includes="middleware/server/**"
                 sourceDestDir="${basedir}/build/classes"
                 procOnly="false"
                 sourcepath="${basedir}/src">
@@ -138,7 +153,7 @@
 
     <target name="start-tomcat-middleware">
         <echo message="Starting Tomcat and deploying service ... "/>
-        <java fork="true" classname="middleware.ws.Main">
+        <java fork="true" classname="middleware.server.ws.Main">
             <classpath>
                 <path refid="jaxws.classpath"/>
                 <pathelement location="${basedir}/build/classes"/>
@@ -160,8 +175,9 @@
     </target>
 
     <target name="middleware" depends="setup">
+        <!-- <antcall target="clean"/> -->
         <antcall target="build-middleware"/>
-        <antcall target="create-war"/>
+        <antcall target="create-war-middleware"/>
         <antcall target="deploy-war"/>
         <antcall target="start-tomcat-middleware"/>        
     </target>
@@ -171,7 +187,7 @@
                 quiet="true"
                 keep="true"
                 destdir="${basedir}/build/classes"
-                package="middleware.ws"
+                package="middleware.client"
                 wsdl="http://${client-service.host}:${client-service.port}/${client-service.name}/service?wsdl">
         </wsimport>
     </target>
@@ -181,7 +197,7 @@
                 fork="true"
                 srcdir="${basedir}/src"
                 destdir="${basedir}/build/classes"
-                includes="middleware/**">
+                includes="middleware/client">
             <classpath refid="jaxws.classpath"/>
         </javac>
     </target>

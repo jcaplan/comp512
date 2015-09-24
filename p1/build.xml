@@ -153,7 +153,7 @@
 
     <target name="start-tomcat-middleware">
         <echo message="Starting Tomcat and deploying service ... "/>
-        <java fork="true" classname="middleware.server.ws.Main">
+        <java fork="true" classname="middleware.server.Main">
             <classpath>
                 <path refid="jaxws.classpath"/>
                 <pathelement location="${basedir}/build/classes"/>

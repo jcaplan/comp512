@@ -1,4 +1,4 @@
-package middleware.server.ws;
+package middleware.server;
 
 import middleware.client.*;
 

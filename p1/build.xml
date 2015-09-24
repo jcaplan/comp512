@@ -42,6 +42,12 @@
         <classpath refid="jaxws.classpath"/>
     </taskdef>
 
+    <taskdef name="wsimport" classname="com.sun.tools.ws.ant.WsImport">
+        <classpath refid="jaxws.classpath"/>
+    </taskdef>
+
+
+
 <!-- Server -->
     <target name="build-server" depends="setup">
         <annotationProcessing
@@ -127,6 +133,7 @@
                 <pathelement location="${basedir}/src"/>
             </classpath>
         </annotationProcessing>
+
     </target>
 
     <target name="start-tomcat-middleware">
@@ -159,11 +166,28 @@
         <antcall target="start-tomcat-middleware"/>        
     </target>
 
+   <target name="generate-middleware-client" depends="setup">
+        <wsimport
+                quiet="true"
+                keep="true"
+                destdir="${basedir}/build/classes"
+                package="middleware.ws"
+                wsdl="http://${client-service.host}:${client-service.port}/${client-service.name}/service?wsdl">
+        </wsimport>
+    </target>
+
+    <target name="build-middleware-client" depends="generate-middleware-client">
+        <javac
+                fork="true"
+                srcdir="${basedir}/src"
+                destdir="${basedir}/build/classes"
+                includes="middleware/**">
+            <classpath refid="jaxws.classpath"/>
+        </javac>
+    </target>
 
 <!-- client -->
-    <taskdef name="wsimport" classname="com.sun.tools.ws.ant.WsImport">
-        <classpath refid="jaxws.classpath"/>
-    </taskdef>
+    
 
     <target name="generate-client" depends="setup">
         <wsimport

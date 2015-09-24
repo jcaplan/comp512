@@ -1,8 +1,7 @@
-package client;
+package middleware.ws;
 
 import java.util.*;
 import java.io.*;
-
 
 public class MWClient extends WSClient {
 

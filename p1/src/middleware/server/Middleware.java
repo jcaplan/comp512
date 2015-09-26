@@ -367,6 +367,11 @@ public class Middleware implements server.ws.ResourceManager {
 		} else {
 			Trace.info("Found customer: " + customerInfo);
 		}
+		return reserveFlightNoCustCheck(id, customerId, flightNumber);
+	}
+
+	private boolean reserveFlightNoCustCheck(int id, int customerId,
+			int flightNumber) {
 		// Try to reserver a flight with the flight RM
 		MWClient flightClient = getNewFlightClient();
 		int price = 0;
@@ -388,8 +393,8 @@ public class Middleware implements server.ws.ResourceManager {
 	// Add car reservation to this customer.
 	@Override
 	public boolean reserveCar(int id, int customerId, String location) {
-		Trace.info("RM::reserveCar(" + id + ", " + customerId + ","
-				+ location + ") called.");
+		Trace.info("RM::reserveCar(" + id + ", " + customerId + "," + location
+				+ ") called.");
 		Trace.info("Retrieving customer data");
 		String customerInfo = queryCustomerInfo(id, customerId);
 		// Check if customer exists
@@ -399,6 +404,11 @@ public class Middleware implements server.ws.ResourceManager {
 		} else {
 			Trace.info("Found customer: " + customerInfo);
 		}
+		return reserveCarNoCustCheck(id, customerId, location);
+	}
+
+	private boolean reserveCarNoCustCheck(int id, int customerId,
+			String location) {
 		// Try to reserver a car with the car RM
 		MWClient carClient = getNewCarClient();
 		int price = 0;
@@ -411,8 +421,8 @@ public class Middleware implements server.ws.ResourceManager {
 		}
 		// Add reservation to customer
 		MWClient client = getNewCustomerClient();
-		client.reserveCustomer(id, customerId, Car.getKey(location),
-				location, price);
+		client.reserveCustomer(id, customerId, Car.getKey(location), location,
+				price);
 
 		return true;
 	}
@@ -420,8 +430,8 @@ public class Middleware implements server.ws.ResourceManager {
 	// Add room reservation to this customer.
 	@Override
 	public boolean reserveRoom(int id, int customerId, String location) {
-		Trace.info("RM::reserveRoom(" + id + ", " + customerId + ","
-				+ location + ") called.");
+		Trace.info("RM::reserveRoom(" + id + ", " + customerId + "," + location
+				+ ") called.");
 		Trace.info("Retrieving customer data");
 		String customerInfo = queryCustomerInfo(id, customerId);
 		// Check if customer exists
@@ -431,6 +441,10 @@ public class Middleware implements server.ws.ResourceManager {
 		} else {
 			Trace.info("Found customer: " + customerInfo);
 		}
+		return reserveRoomNoCust(id, customerId, location);
+	}
+
+	private boolean reserveRoomNoCust(int id, int customerId, String location) {
 		// Try to reserver a car with the car RM
 		MWClient roomClient = getNewRoomClient();
 		int price = 0;
@@ -443,8 +457,8 @@ public class Middleware implements server.ws.ResourceManager {
 		}
 		// Add reservation to customer
 		MWClient client = getNewCustomerClient();
-		client.reserveCustomer(id, customerId, Room.getKey(location),
-				location, price);
+		client.reserveCustomer(id, customerId, Room.getKey(location), location,
+				price);
 
 		return true;
 	}
@@ -453,13 +467,115 @@ public class Middleware implements server.ws.ResourceManager {
 	@Override
 	public boolean reserveItinerary(int id, int customerId,
 			Vector flightNumbers, String location, boolean car, boolean room) {
-		return false;
-	}
-	
+		String s = "RM::reserveItinerary(" + id + ", " + customerId + ",";
 
-	
-	
-	
+		for (Object o : flightNumbers) {
+			s += o + ",";
+		}
+		s += location + "," + car + "," + room + ") called.";
+		Trace.info(s);
+		Trace.info("Retrieving customer data");
+		String customerInfo = queryCustomerInfo(id, customerId);
+		// Check if customer exists
+		if (customerInfo.isEmpty()) {
+			Trace.info("Custome does not exist");
+			return false;
+		} else {
+			Trace.info("Found customer: " + customerInfo);
+		}
+
+		boolean carSuccess = false;
+		boolean roomSuccess = false;
+		boolean flightSuccess = false;
+		int numFlightsReserved = 0;
+		
+		MWClient carClient, roomClient = null, flightClient = null;
+		// First try the car
+		carClient = getNewCarClient(); 
+		carSuccess = carClient.reserveItem(id, customerId,
+				Car.getKey(location), location);
+		if (carSuccess) {
+			Trace.info("car reserved successfully");
+		}
+
+		// Don't bother with room if the car didn't succeed
+		if (carSuccess) {
+			roomClient = getNewRoomClient();
+			roomSuccess = roomClient.reserveItem(id, customerId,
+					Room.getKey(location), location);
+		}
+		if (roomSuccess) {
+			Trace.info("room reserved successfully");
+		}
+		// Don't bother with flight if room didn't succeed
+		if (roomSuccess) {
+			flightClient = getNewFlightClient();
+			for (Object fNumber : flightNumbers) {
+				int flightNumber = Integer.parseInt(fNumber.toString());
+				flightSuccess = flightClient.reserveItem(id, customerId,
+						Flight.getKey(flightNumber), location);
+
+				if(flightSuccess){
+					numFlightsReserved++;
+				} else {
+					break;
+				}
+			}
+
+		}
+		
+
+		boolean removeCar = carSuccess && !(roomSuccess || flightSuccess);
+		boolean removeRoom = roomSuccess && !flightSuccess;
+		boolean removeFlights = numFlightsReserved > 0 && !flightSuccess;
+
+		if (removeCar) {
+			
+			carClient.cancelReserveItem(id, customerId, Car.getKey(location),
+					location);
+			Trace.info("removed car reservation");
+		}
+		if (removeRoom) {
+			roomClient.cancelReserveItem(id, customerId, Room.getKey(location),
+					location);
+			Trace.info("removed room reservation");
+		}
+		if (removeFlights) {
+			Trace.info("removing " + numFlightsReserved + "flight reservations");
+			for (int i = 0; i < numFlightsReserved; i++) {
+				String fNumber = flightNumbers.get(i).toString();
+				int flightNumber = Integer.parseInt(fNumber);
+				flightClient.cancelReserveItem(id, customerId,
+						Flight.getKey(flightNumber), location);
+			}
+		}
+
+		//if all 3 succeed then update the client
+		if (carSuccess && roomSuccess && flightSuccess) {
+			int price = 0;
+			MWClient custClient = getNewCustomerClient();
+
+			price = carClient.queryCarsPrice(id, location);
+			custClient.reserveCustomer(id, customerId, Car.getKey(location),
+					location, price);
+
+			price = roomClient.queryRoomsPrice(id, location);
+			custClient.reserveCustomer(id, customerId, Room.getKey(location),
+					location, price);
+
+			for (Object fNumber : flightNumbers) {
+				int flightNumber = Integer.parseInt(fNumber.toString());
+				price = flightClient.queryFlightPrice(id, flightNumber);
+				custClient.reserveCustomer(id, customerId,
+						Flight.getKey(flightNumber), location, price);
+			}
+			Trace.info("Itinerary booked successfully");
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 	/**
 	 * Methods reserveCustomer and reserveItem not implemented for client side.
 	 * Only for RM and middleware.
@@ -469,26 +585,23 @@ public class Middleware implements server.ws.ResourceManager {
 			String location, int price) {
 		return false;
 	}
-	
-	@Override 
+
+	@Override
 	public boolean reserveItem(int id, int customerId, String key,
 			String location) {
 		return false;
 	}
-	
+
 	@Override
 	public boolean cancelReserveCustomer(int id, int customerId, String key,
 			String location, int price) {
 		return false;
 	}
-	
-	@Override 
+
+	@Override
 	public boolean cancelReserveItem(int id, int customerId, String key,
 			String location) {
 		return false;
 	}
-	
-	
-	
 
 }

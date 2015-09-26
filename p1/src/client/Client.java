@@ -9,8 +9,8 @@ public class Client extends client.WSClient {
 
     private Vector results = new Vector();
 
-    public Vector getResults(){
-        return results;
+    public Object getResult(int index){
+        return results.get(index);
     }
 
     public Client(String serviceName, String serviceHost, int servicePort) 
@@ -33,7 +33,42 @@ public class Client extends client.WSClient {
             
             Client client = new Client(serviceName, serviceHost, servicePort);
             
-            client.run();
+//            client.run();
+            Vector arguments = new Vector();
+            
+            //set up customers
+            arguments = client.parse("newcustomer,0");
+            client.handleRequest(arguments);
+            arguments = client.parse("newcustomer,1");
+            client.handleRequest(arguments);
+
+            int client0 = (Integer)client.getResult(0);
+            int client1 = (Integer)client.getResult(1);
+            System.out.println("new clients: " + client0 + "," + client1);
+            //set up a car
+            arguments = client.parse("newcar,0,0,100,100");
+            client.handleRequest(arguments);
+
+            //try an itinerary that won't work then check car
+            //a few times
+            for(int i = 0; i < 5; i++){
+	            arguments = client.parse("itinerary,0,"+client0 +",0,0,0,0");
+	            client.handleRequest(arguments);
+	            arguments = client.parse("querycar,0,0");
+	            client.handleRequest(arguments);
+            }
+            
+            
+            
+            arguments = client.parse("newflight,0,0,200,200");
+            client.handleRequest(arguments);
+            arguments = client.parse("newroom,0,0,300,300");
+            client.handleRequest(arguments);
+            
+            arguments = client.parse("itinerary,0,"+client1 +",0,0,0,0");
+            client.handleRequest(arguments);
+        
+
             
         } catch(Exception e) {
             e.printStackTrace();
@@ -815,7 +850,7 @@ public class Client extends client.WSClient {
             System.out.println("\nUsage: ");
             System.out.println("\titinerary, <id>, <customerid>, "
                     + "<flightnumber1>....<flightnumberN>, "
-                    + "<LocationToBookcarsOrrooms>, <NumberOfcars>, <NumberOfroom>");
+                    + "<LocationToBookcarsOrrooms>, <car>, <room>");
             break;
             
 

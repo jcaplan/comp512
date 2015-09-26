@@ -1,10 +1,10 @@
 #!/bin/bash
 
 
-# ant build-middleware-client -Dclient-service.name=rmCar -Dclient-service.port=18081
+ant build-middleware-client -Dclient-service.name=rmCar -Dclient-service.port=18081
 # ant build-middleware-client -Dclient-service.name=rmRoom -Dclient-service.port=18082
 # ant build-middleware-client -Dclient-service.name=rmFlight -Dclient-service.port=18083 
-ant build-middleware-client -Dclient-service.name=rmCustomer -Dclient-service.port=18084 
+# ant build-middleware-client -Dclient-service.name=rmCustomer -Dclient-service.port=18084 
 
 ant middleware -Dserver-service.name=rmMW -Dserver-service.port=18080 \
 		-Dmw-service1.name=rmCar -Dmw-service1.port=18081 \

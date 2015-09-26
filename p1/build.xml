@@ -35,6 +35,10 @@
         <delete dir="${basedir}/build" includeEmptyDirs="true"/>
     </target>
 
+<target name="clean-client">
+        <delete dir="${basedir}/build/client" includeEmptyDirs="true"/>
+    </target>
+    
     <target name="setup">
         <mkdir dir="${basedir}/build"/>
         <mkdir dir="${basedir}/build/classes"/>

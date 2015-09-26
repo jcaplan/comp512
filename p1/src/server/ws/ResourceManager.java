@@ -17,6 +17,7 @@
 package server.ws;
 
 import java.util.*;
+
 import javax.jws.WebService;
 import javax.jws.WebMethod;
 
@@ -138,5 +139,22 @@ public interface ResourceManager {
     @WebMethod
     public boolean reserveItinerary(int id, int customerId, Vector flightNumbers, 
                                     String location, boolean car, boolean room);
+    
+    @WebMethod 
+    public boolean reserveCustomer(int id, int customerId, String key,
+			String location, int price);
+    
+    @WebMethod
+	public boolean reserveItem(int id, int customerId, 
+            String key, String location);
+    
+    @WebMethod 
+    public boolean cancelReserveCustomer(int id, int customerId, String key,
+			String location, int price);
+    
+    @WebMethod
+	public boolean cancelReserveItem(int id, int customerId, 
+            String key, String location);
+    
     			
 }

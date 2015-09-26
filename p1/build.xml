@@ -14,6 +14,9 @@
     <property name="mw-service3.name" value="rm"/>
     <property name="mw-service3.host" value="localhost"/>
     <property name="mw-service3.port" value="8080"/>
+    <property name="mw-service4.name" value="rm"/>
+    <property name="mw-service4.host" value="localhost"/>
+    <property name="mw-service4.port" value="8080"/>
     <property name="server-service.name" value="rm"/>
     <property name="server-service.host" value="localhost"/>
     <property name="server-service.port" value="8080"/>
@@ -151,12 +154,22 @@
 
     </target>
 
-    <target name="start-tomcat-middleware">
+        <target name="build-middleware-main" depends="setup">
+        <javac
+                fork="true"
+                srcdir="${basedir}/src/middleware/main"
+                destdir="${basedir}/build/">
+            <classpath refid="jaxws.classpath"/>
+        </javac>
+    </target>
+
+
+    <target name="start-tomcat-middleware" depends="build-middleware-main">
         <echo message="Starting Tomcat and deploying service ... "/>
-        <java fork="true" classname="middleware.server.Main">
+        <java fork="true" classname="middleware.main.Main">
             <classpath>
                 <path refid="jaxws.classpath"/>
-                <pathelement location="${basedir}/build/classes"/>
+                <pathelement location="${basedir}/build/"/>
             </classpath>
             <jvmarg value="-Djava.security.policy=${basedir}/etc/server.policy"/>
             <arg value="${server-service.name}"/>
@@ -171,6 +184,9 @@
             <arg value="${mw-service3.name}"/>
             <arg value="${mw-service3.host}"/>
             <arg value="${mw-service3.port}"/>
+            <arg value="${mw-service4.name}"/>
+            <arg value="${mw-service4.host}"/>
+            <arg value="${mw-service4.port}"/>
         </java>
     </target>
 

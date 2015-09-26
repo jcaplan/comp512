@@ -1,0 +1,77 @@
+package middleware.server;
+
+import client.*;
+
+class ClientParameters {
+
+    private static final int NUM_CLIENTS = 4;
+    private static final int FLIGHT_CLIENT = 0;
+    private static final int ROOM_CLIENT = 1;
+    private static final int CAR_CLIENT = 2;
+    private static final int CUSTOMER_CLIENT = 3;
+
+
+    static volatile String[] clientServiceName = new String[NUM_CLIENTS];
+    static volatile String[] clientServiceHost = new String[NUM_CLIENTS];
+    static volatile int[] clientPort = new int[NUM_CLIENTS];
+
+
+    public static void setParameters(String pclientServiceName, String pclientServiceHost, int pclientPort, int pclientType){
+        synchronized(ClientParameters.class){}
+        clientServiceName[pclientType] = pclientServiceName;
+        clientServiceHost[pclientType] = pclientServiceHost;
+        clientPort[pclientType] = pclientPort;
+    }
+
+    public static Client getNewClient(int clientType){
+        Client client = null;
+        System.out.println("new thread... " + Thread.currentThread().getId());
+        if(clientServiceName[clientType] == null){
+            System.out.println("dont even try");
+            System.exit(-1);
+        }
+        try{
+            client = new Client(clientServiceName[clientType],clientServiceHost[clientType],clientPort[clientType]);
+        } catch (Exception e) {
+             e.printStackTrace();
+        }
+        if(client == null){
+            System.out.println("OHNO***************************************************************");
+            System.out.println("client: " + clientServiceName[clientType] + ", " + clientServiceHost[clientType] + ", " + clientPort[clientType]);
+            System.exit(-1);
+        }
+        return client;
+    }
+
+
+    public static void setFlightClient(String clientServiceName, String clientServiceHost, int clientPort) {
+        setParameters(clientServiceName,clientServiceHost,clientPort,FLIGHT_CLIENT);
+    }
+
+    public static void setRoomClient(String clientServiceName, String clientServiceHost, int clientPort) {
+       setParameters(clientServiceName,clientServiceHost,clientPort,ROOM_CLIENT);
+    }
+    public static void setCarClient(String clientServiceName, String clientServiceHost, int clientPort) {
+        setParameters(clientServiceName,clientServiceHost,clientPort,CAR_CLIENT);
+    }
+    public static void setCustomerClient(String clientServiceName, String clientServiceHost, int clientPort) {
+        setParameters(clientServiceName,clientServiceHost,clientPort,CUSTOMER_CLIENT);
+    }
+
+    public static Client getNewFlightClient(){
+        return getNewClient(FLIGHT_CLIENT);
+    }
+
+    public static Client getNewRoomClient(){
+        return getNewClient(ROOM_CLIENT);
+    }
+    public static Client getNewCarClient(){
+        return getNewClient(CAR_CLIENT);
+    }
+    public static Client getNewCustomerClient(){
+        return getNewClient(CUSTOMER_CLIENT);
+    }
+
+}
+
+ 

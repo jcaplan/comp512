@@ -1,6 +1,5 @@
-package middleware.server;
+package middleware.main;
 
-import middleware.client.*;
 
 import java.io.File;
 import org.apache.catalina.LifecycleException;
@@ -12,7 +11,7 @@ public class Main {
     public static void main(String[] args) 
     throws Exception {
     
-        if (args.length != 12 ) {
+        if (args.length != 15 ) {
             System.out.println(
                 "Usage: java Main <server-service-name> <server-service-port> <server-deploy-dir>" +
                 "<client-service-name>  <client-service-host> <client-service-port>");
@@ -42,23 +41,25 @@ public class Main {
         String clientServiceName = args[3];
         String clientServiceHost = args[4];
         int clientPort = Integer.parseInt(args[5]);
-        ClientThread cThread1 = new ClientThread(clientServiceName,clientServiceHost,clientPort);
-        cThread1.start();
+        // ResourceManagerImpl.setCarClient(clientServiceName,clientServiceHost,clientPort);
 
 
         clientServiceName = args[6];
         clientServiceHost = args[7];
         clientPort = Integer.parseInt(args[8]);
-        ClientThread cThread2 = new ClientThread(clientServiceName,clientServiceHost,clientPort);
-        cThread2.start();
-
+        // ResourceManagerImpl.setRoomClient(clientServiceName,clientServiceHost,clientPort);
 
         clientServiceName = args[9];
         clientServiceHost = args[10];
         clientPort = Integer.parseInt(args[11]);
-        ClientThread cThread3 = new ClientThread(clientServiceName,clientServiceHost,clientPort);
-        cThread3.start();
+        // ResourceManagerImpl.setFlightClient(clientServiceName,clientServiceHost,clientPort);
 
+        clientServiceName = args[12];
+        clientServiceHost = args[13];
+        clientPort = Integer.parseInt(args[14]);
+        // ResourceManagerImpl.setCustomerClient(clientServiceName,clientServiceHost,clientPort);
+        // Client client = ResourceManagerImpl.getNewCustomerClient();
+        
         tomcat.start();
         tomcat.getServer().await();
     }

@@ -7,7 +7,7 @@
 
    <endpoint
       name="ResourceManager"
-      implementation="middleware.server.Middleware"
+      implementation="middleware.server.ResourceManagerImpl"
       url-pattern="/service"/>     
 
 </endpoints>

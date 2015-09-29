@@ -34,39 +34,28 @@ public class Client extends client.WSClient {
             Client client = new Client(serviceName, serviceHost, servicePort);
             
 //            client.run();
-            Vector arguments = new Vector();
             
             //set up customers
-            arguments = client.parse("newcustomer,0");
-            client.handleRequest(arguments);
-            arguments = client.parse("newcustomer,1");
-            client.handleRequest(arguments);
+            client.handleRequest("newcustomer,0");
+            client.handleRequest("newcustomer,1");
 
             int client0 = (Integer)client.getResult(0);
             int client1 = (Integer)client.getResult(1);
             System.out.println("new clients: " + client0 + "," + client1);
             //set up a car
-            arguments = client.parse("newcar,0,0,100,100");
-            client.handleRequest(arguments);
+            client.handleRequest("newcar,0,0,100,100");
 
             //try an itinerary that won't work then check car
             //a few times
             for(int i = 0; i < 5; i++){
-	            arguments = client.parse("itinerary,0,"+client0 +",0,0,0,0");
-	            client.handleRequest(arguments);
-	            arguments = client.parse("querycar,0,0");
-	            client.handleRequest(arguments);
+	            client.handleRequest("itinerary,0,"+client0 +",0,0,0,0");
+	            client.handleRequest("querycar,0,0");
             }
             
+            client.handleRequest("newflight,0,0,200,200");
+            client.handleRequest("newroom,0,0,300,300");
             
-            
-            arguments = client.parse("newflight,0,0,200,200");
-            client.handleRequest(arguments);
-            arguments = client.parse("newroom,0,0,300,300");
-            client.handleRequest(arguments);
-            
-            arguments = client.parse("itinerary,0,"+client1 +",0,0,0,0");
-            client.handleRequest(arguments);
+            client.handleRequest("itinerary,0,"+client1 +",0,0,0,0");
         
 
             
@@ -97,13 +86,11 @@ public class Client extends client.WSClient {
                 System.exit(1);
             }
             //remove heading and trailing white space
-            command = command.trim();
-            arguments = parse(command);
-            handleRequest(arguments);
+           handleRequest(command);
         }
     }
 
-    public Vector handleRequest(Vector arguments) {
+    public Vector handleRequest(String command) {
     
         int id;
         int flightNumber;
@@ -116,7 +103,12 @@ public class Client extends client.WSClient {
         int numCars;
         String location;
 
-       
+
+        Vector arguments = new Vector();   
+        command = command.trim();
+        arguments = parse(command);
+
+
             
         //decide which of the commands this was
         switch(findChoice((String) arguments.elementAt(0))) {

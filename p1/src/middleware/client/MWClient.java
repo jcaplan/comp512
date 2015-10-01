@@ -3,6 +3,10 @@ package middleware.client;
 import java.util.*;
 import java.io.*;
 
+import server.Car;
+import server.Flight;
+import server.Room;
+
 public class MWClient extends WSClient {
 
 	public MWClient(String serviceName, String serviceHost, int servicePort)
@@ -185,25 +189,73 @@ public class MWClient extends WSClient {
 		return customerStatus;
 	}
 
-	public boolean reserveItem(int id, int customerId, String key,
-			String location) {
+
+
+
+	
+	// Add flight reservation to this customer.
+	public boolean reserveFlight(int id, int customerId, int flightNumber) {
 		boolean itemStatus = false;
 		try {
-			itemStatus = proxy.reserveItem(id, customerId, key, location);
+			itemStatus = proxy.reserveFlight(id, customerId, flightNumber);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return itemStatus;
 	}
 
-	public boolean cancelReserveItem(int id, int customerId, String key,
-			String location) {
+	// Add car reservation to this customer.
+	public boolean reserveCar(int id, int customerId, String location) {
 		boolean itemStatus = false;
 		try {
-			itemStatus = proxy.cancelReserveItem(id, customerId, key, location);
+			itemStatus = proxy.reserveCar(id, customerId, location);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return itemStatus;
+	}
+
+	// Add room reservation to this customer.
+	public boolean reserveRoom(int id, int customerId, String location) {
+		boolean itemStatus = false;
+		try {
+			itemStatus = proxy.reserveRoom(id, customerId, location);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return itemStatus;
+	}
+
+	public boolean cancelReserveCar(int id, int customerId, String location) {
+		boolean itemStatus = false;
+		try {
+			itemStatus = proxy.cancelReserveCar(id, customerId, location);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return itemStatus;
+		
+	}
+
+	public boolean cancelReserveRoom(int id, int customerId, String location) {
+		boolean itemStatus = false;
+		try {
+			itemStatus = proxy.cancelReserveRoom(id, customerId, location);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return itemStatus;
+		
+	}
+
+	public boolean cancelReserveFlight(int id, int customerId, int flightNumber) {
+		boolean itemStatus = false;
+		try {
+			itemStatus = proxy.cancelReserveFlight(id, customerId, flightNumber);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return itemStatus;
+		
 	}
 }

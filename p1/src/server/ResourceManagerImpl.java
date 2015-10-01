@@ -85,8 +85,8 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 	}
 
 	// Reserve an item.
-	@Override
-	public boolean reserveItem(int id, int customerId, String key,
+
+	private boolean reserveItem(int id, int customerId, String key,
 			String location) {
 
 		// Check if the item is available.
@@ -112,8 +112,8 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 	}
 
 	// Cancel an item.
-	@Override
-	public boolean cancelReserveItem(int id, int customerId, String key,
+
+	private boolean cancelReserveItem(int id, int customerId, String key,
 			String location) {
 
 		// Check if the item is available.
@@ -461,6 +461,24 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 	@Override
 	public boolean reserveRoom(int id, int customerId, String location) {
 		return reserveItem(id, customerId, Room.getKey(location), location);
+	}
+	
+	@Override
+	public boolean cancelReserveFlight(int id, int customerId, int flightNumber) {
+		return cancelReserveItem(id, customerId, Flight.getKey(flightNumber),
+				String.valueOf(flightNumber));
+	}
+
+	// Add car reservation to this customer.
+	@Override
+	public boolean cancelReserveCar(int id, int customerId, String location) {
+		return cancelReserveItem(id, customerId, Car.getKey(location), location);
+	}
+
+	// Add room reservation to this customer.
+	@Override
+	public boolean cancelReserveRoom(int id, int customerId, String location) {
+		return cancelReserveItem(id, customerId, Room.getKey(location), location);
 	}
 
 	// Reserve an itinerary.

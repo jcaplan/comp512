@@ -144,17 +144,21 @@ public interface ResourceManager {
     public boolean reserveCustomer(int id, int customerId, String key,
 			String location, int price);
     
-    @WebMethod
-	public boolean reserveItem(int id, int customerId, 
-            String key, String location);
     
     @WebMethod 
     public boolean cancelReserveCustomer(int id, int customerId, String key,
 			String location, int price);
-    
+
     @WebMethod
-	public boolean cancelReserveItem(int id, int customerId, 
-            String key, String location);
+	boolean cancelReserveFlight(int id, int customerId, int flightNumber);
+
+    @WebMethod
+	boolean cancelReserveCar(int id, int customerId, String location);
+
+    @WebMethod
+	boolean cancelReserveRoom(int id, int customerId, String location);
+
+
     
     			
 }

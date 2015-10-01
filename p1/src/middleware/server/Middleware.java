@@ -375,8 +375,7 @@ public class Middleware implements server.ws.ResourceManager {
 		// Try to reserver a flight with the flight RM
 		MWClient flightClient = getNewFlightClient();
 		int price = 0;
-		boolean flightStatus = flightClient.reserveItem(id, customerId,
-				Flight.getKey(flightNumber), String.valueOf(flightNumber));
+		boolean flightStatus = flightClient.reserveFlight(id, customerId,flightNumber);
 		if (flightStatus) {
 			price = flightClient.queryFlightPrice(id, flightNumber);
 		} else {
@@ -412,8 +411,7 @@ public class Middleware implements server.ws.ResourceManager {
 		// Try to reserver a car with the car RM
 		MWClient carClient = getNewCarClient();
 		int price = 0;
-		boolean carStatus = carClient.reserveItem(id, customerId,
-				Car.getKey(location), location);
+		boolean carStatus = carClient.reserveCar(id, customerId, location);
 		if (carStatus) {
 			price = carClient.queryCarsPrice(id, location);
 		} else {
@@ -448,8 +446,7 @@ public class Middleware implements server.ws.ResourceManager {
 		// Try to reserver a car with the car RM
 		MWClient roomClient = getNewRoomClient();
 		int price = 0;
-		boolean roomStatus = roomClient.reserveItem(id, customerId,
-				Room.getKey(location), location);
+		boolean roomStatus = roomClient.reserveRoom(id, customerId, location);
 		if (roomStatus) {
 			price = roomClient.queryRoomsPrice(id, location);
 		} else {
@@ -492,8 +489,7 @@ public class Middleware implements server.ws.ResourceManager {
 		MWClient carClient, roomClient = null, flightClient = null;
 		// First try the car
 		carClient = getNewCarClient(); 
-		carSuccess = carClient.reserveItem(id, customerId,
-				Car.getKey(location), location);
+		carSuccess = carClient.reserveCar(id, customerId, location);
 		if (carSuccess) {
 			Trace.info("car reserved successfully");
 		}
@@ -501,8 +497,7 @@ public class Middleware implements server.ws.ResourceManager {
 		// Don't bother with room if the car didn't succeed
 		if (carSuccess) {
 			roomClient = getNewRoomClient();
-			roomSuccess = roomClient.reserveItem(id, customerId,
-					Room.getKey(location), location);
+			roomSuccess = roomClient.reserveRoom(id, customerId, location);
 		}
 		if (roomSuccess) {
 			Trace.info("room reserved successfully");
@@ -512,8 +507,7 @@ public class Middleware implements server.ws.ResourceManager {
 			flightClient = getNewFlightClient();
 			for (Object fNumber : flightNumbers) {
 				int flightNumber = Integer.parseInt(fNumber.toString());
-				flightSuccess = flightClient.reserveItem(id, customerId,
-						Flight.getKey(flightNumber), location);
+				flightSuccess = flightClient.reserveFlight(id, customerId, flightNumber);
 
 				if(flightSuccess){
 					numFlightsReserved++;
@@ -531,13 +525,11 @@ public class Middleware implements server.ws.ResourceManager {
 
 		if (removeCar) {
 			
-			carClient.cancelReserveItem(id, customerId, Car.getKey(location),
-					location);
+			carClient.cancelReserveCar(id, customerId,location);
 			Trace.info("removed car reservation");
 		}
 		if (removeRoom) {
-			roomClient.cancelReserveItem(id, customerId, Room.getKey(location),
-					location);
+			roomClient.cancelReserveRoom(id, customerId,location);
 			Trace.info("removed room reservation");
 		}
 		if (removeFlights) {
@@ -545,8 +537,7 @@ public class Middleware implements server.ws.ResourceManager {
 			for (int i = 0; i < numFlightsReserved; i++) {
 				String fNumber = flightNumbers.get(i).toString();
 				int flightNumber = Integer.parseInt(fNumber);
-				flightClient.cancelReserveItem(id, customerId,
-						Flight.getKey(flightNumber), location);
+				flightClient.cancelReserveFlight(id, customerId, flightNumber);
 			}
 		}
 
@@ -586,11 +577,24 @@ public class Middleware implements server.ws.ResourceManager {
 		return false;
 	}
 
+
 	@Override
-	public boolean reserveItem(int id, int customerId, String key,
-			String location) {
+	public boolean cancelReserveFlight(int id, int customerId, int flightNumber) {
 		return false;
 	}
+
+	// Add car reservation to this customer.
+	@Override
+	public boolean cancelReserveCar(int id, int customerId, String location) {
+		return false;
+	}
+
+	// Add room reservation to this customer.
+	@Override
+	public boolean cancelReserveRoom(int id, int customerId, String location) {
+		return false;
+	}
+
 
 	@Override
 	public boolean cancelReserveCustomer(int id, int customerId, String key,
@@ -598,10 +602,6 @@ public class Middleware implements server.ws.ResourceManager {
 		return false;
 	}
 
-	@Override
-	public boolean cancelReserveItem(int id, int customerId, String key,
-			String location) {
-		return false;
-	}
+
 
 }

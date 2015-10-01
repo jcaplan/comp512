@@ -21,7 +21,6 @@ import java.util.*;
 import javax.jws.WebService;
 import javax.jws.WebMethod;
 
-import server.RMHashtable;
 
 
 @WebService
@@ -159,10 +158,6 @@ public interface ResourceManager {
 
     @WebMethod
 	boolean cancelReserveRoom(int id, int customerId, String location);
-
-    @WebMethod
-	String getCustomerReservations(int id, int customerId);
-
 
     
     			

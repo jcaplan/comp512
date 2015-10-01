@@ -260,13 +260,16 @@ public class MWClient extends WSClient {
 		
 	}
 
-	public RMHashtable getCustomerReservations(int id, int customerId) {
-		RMHashtable reservations = null;
-		try{
-			reservations = proxy.getCustomerReservations(id,customerId);
+	public boolean deleteCustomer(int id, int customerId) {
+		boolean itemStatus = false;
+		try {
+			itemStatus = proxy.deleteCustomer(id, customerId);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return reservations;
+		return itemStatus;
+		
 	}
+
+
 }

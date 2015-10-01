@@ -22,9 +22,9 @@ public class Middleware implements server.ws.ResourceManager {
 	 */
 
 	private static final int NUM_CLIENTS = 4;
-	private static final int FLIGHT_CLIENT = 0;
+	private static final int FLIGHT_CLIENT = 2;
 	private static final int ROOM_CLIENT = 1;
-	private static final int CAR_CLIENT = 2;
+	private static final int CAR_CLIENT = 0;
 	private static final int CUSTOMER_CLIENT = 3;
 
 	static volatile String[] clientServiceName = { "rmCar", "rmRoom",
@@ -303,49 +303,53 @@ public class Middleware implements server.ws.ResourceManager {
 				Trace.info("Found customer: " + customerInfo);
 			}
 
-			RMHashtable reservations = getCustomerReservations(id, customerId);
-			for (Enumeration e = reservations.keys(); e.hasMoreElements();) {
+			//Get the bill for the customer
+			String reservations = queryCustomerInfo(id, customerId);
+			System.out.println(reservations);
+			
+			//Now parse the bill
+			//First parse the string by lines 
+			StringTokenizer tokenizer = new StringTokenizer(reservations, "\n");
+			while(tokenizer.hasMoreTokens()){
+
+				//Now parse the bill using spaces
+	            String line  = tokenizer.nextToken().trim();
+				String[] tokens = line.split(" ");
+				//Skip lines that are not relevant
+				if(tokens[0].equals("Bill") || tokens.length < 2){
+					continue;
+				} 
 				
+				//The key will be "type-arg" so split it around the '-' and
+				//then cancel the item
+				for(String t : tokens){
+					System.out.print(t);
+				}
+				System.out.println();
+				String[] keyArray = tokens[1].split("-");
+				MWClient client;
+				if (keyArray[0].equals("flight")){
+					client = getNewFlightClient();
+					client.cancelReserveFlight(id, customerId, Integer.parseInt(keyArray[1]));
+				} else if(keyArray[0].equals("car")) {
+					client = getNewCarClient();
+					client.cancelReserveCar(id,customerId,keyArray[1]);
+				} else if(keyArray[0].equals("room")){
+					client = getNewRoomClient();
+					client.cancelReserveRoom(id,customerId,keyArray[1]);
+				}
 			}
-			// // Increase the reserved numbers of all reservable items that
-			// // the customer reserved.
-			// RMHashtable reservationHT = cust.getReservations();
-			// for (Enumeration e = reservationHT.keys(); e.hasMoreElements();) {
-			// String reservedKey = (String) (e.nextElement());
-			// ReservedItem reservedItem = cust.getReservedItem(reservedKey);
-			// Trace.info("RM::deleteCustomer(" + id + ", " + customerId
-			// + "): " + "deleting " + reservedItem.getCount()
-			// + " reservations " + "for item "
-			// + reservedItem.getKey());
-			// ReservableItem item = (ReservableItem) readData(id,
-			// reservedItem.getKey());
-			// item.setReserved(item.getReserved() - reservedItem.getCount());
-			// item.setCount(item.getCount() + reservedItem.getCount());
-			// Trace.info("RM::deleteCustomer(" + id + ", " + customerId
-			// + "): " + reservedItem.getKey()
-			// + " reserved/available = " + item.getReserved() + "/"
-			// + item.getCount());
-			// }
-			// // Remove the customer from the storage.
-			// removeData(id, cust.getKey());
-			// Trace.info("RM::deleteCustomer(" + id + ", " + customerId + ") OK.");
-			return true;
-			// }
+				
+			MWClient custClient = getNewCustomerClient();
+			return custClient.deleteCustomer(id,customerId);
+			
 		}
 
 		// Return data structure containing customer reservation info.
 		// Returns null if the customer doesn't exist.
 		// Returns empty RMHashtable if customer exists but has no reservations.
-		@Override
-		public void getCustomerReservations(int id, int customerId) {
-
-			Trace.info("RM::getCustomerReservations(" + id + ", " + customerId
-					+ ") called.");
-
-			MWClient client = getNewCustomerClient();
-			RMHashtable reservations = client.getCustomerReservations(id,customerId);
-//			return reservations;
-			
+		public RMHashtable getCustomerReservations(int id, int customerId) {
+			return null;
 		}
 
 	// Return a bill.
@@ -532,6 +536,7 @@ public class Middleware implements server.ws.ResourceManager {
 		
 		boolean flightFailed = !flightSuccess;
 		boolean roomFailed = (room && !roomSuccess);
+		boolean carFailed = (car && !carSuccess);
 		
 		boolean removeCar = (car && carSuccess) && (roomFailed ||  flightFailed);
 		boolean removeRoom = (room && roomSuccess) && flightFailed;
@@ -555,19 +560,21 @@ public class Middleware implements server.ws.ResourceManager {
 			}
 		}
 
-		//if all 3 succeed then update the client
-		if (carSuccess && roomSuccess && flightSuccess) {
+		//if none of them failed
+		if (!(carFailed || roomFailed || flightFailed)) {
 			int price = 0;
 			MWClient custClient = getNewCustomerClient();
 
-			price = carClient.queryCarsPrice(id, location);
-			custClient.reserveCustomer(id, customerId, Car.getKey(location),
-					location, price);
-
-			price = roomClient.queryRoomsPrice(id, location);
-			custClient.reserveCustomer(id, customerId, Room.getKey(location),
-					location, price);
-
+			if(car){
+				price = carClient.queryCarsPrice(id, location);
+				custClient.reserveCustomer(id, customerId, Car.getKey(location),
+						location, price);
+			}
+			if(room){
+				price = roomClient.queryRoomsPrice(id, location);
+				custClient.reserveCustomer(id, customerId, Room.getKey(location),
+						location, price);
+			}
 			for (Object fNumber : flightNumbers) {
 				int flightNumber = Integer.parseInt(fNumber.toString());
 				price = flightClient.queryFlightPrice(id, flightNumber);

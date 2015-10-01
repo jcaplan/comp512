@@ -475,7 +475,7 @@ public class Middleware implements server.ws.ResourceManager {
 		String customerInfo = queryCustomerInfo(id, customerId);
 		// Check if customer exists
 		if (customerInfo.isEmpty()) {
-			Trace.info("Custome does not exist");
+			Trace.info("Customer does not exist");
 			return false;
 		} else {
 			Trace.info("Found customer: " + customerInfo);

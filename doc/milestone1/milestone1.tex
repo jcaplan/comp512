@@ -155,10 +155,18 @@ For convenience, the parsing of commands was separated from the main run loop in
 	
 	
 \subsection{RM server modifications}
-The server required several modifications to support the middleware. The original RM implementation assumed that customer information was located in the same hash table as the services. The reservation of items consisted of two main steps: check that the item was available and reserve it, then update the customer data structure so the reserved item is on their bill. In order to allow the middleware to coordinate this process among the RMs, it was necessary to seperate the reservation of items and the updating of customer data into separate methods and to expose these methods to the ResourceManager interface. It was also necessary to allow the MW to cancel a reservation (details in the section on MW).
-Four methods were added to the ResourceManager interface: \texttt{reserveCustomer()}, \texttt{reserveItem()}, \texttt{cancelReserveCustomer()}, \texttt{cancelReserveItem()}. 
+The server required several modifications to support the middleware. The original RM implementation assumed that customer information was located in the same hash table as the services. The reservation of items consisted of two main steps: check that the item was available and reserve it, then update the customer data structure so the reserved item is on their bill. In order to allow the middleware to coordinate this process among the RMs, it was necessary to seperate the reservation of items and the updating of customer data into separate methods and to expose these methods to the ResourceManager interface. It was also necessary to allow the MW to cancel a reservation (details in the section on MW). Methods were added to the interface to allow explicit updating of the customer reservations and cancelling reservations on specific items. 
     	
+\subsection{Middleware implementation}
+
+The middleware implementation is fairly straight-forward. It consists of a server that implements the ResourceManager interface. Upon a call from a client, the MW methods create a new client object to pass the request to the appropriate RM server.
+
+ The main difficulty in the MW design is to safely handle the itinerary requests. 
+
+ 
 
 \section{TCP Implementation}
+
+
 
 \end{document}

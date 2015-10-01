@@ -288,59 +288,65 @@ public class Middleware implements server.ws.ResourceManager {
 	}
 
 	// Delete customer from the database.
-	@Override
-	public boolean deleteCustomer(int id, int customerId) {
-		// TODO
-		// Trace.info("RM::deleteCustomer(" + id + ", " + customerId +
-		// ") called.");
-		// Customer cust = (Customer) readData(id, Customer.getKey(customerId));
-		// if (cust == null) {
-		// Trace.warn("RM::deleteCustomer(" + id + ", " + customerId
-		// + ") failed: customer doesn't exist.");
-		// return false;
-		// } else {
-		// // Increase the reserved numbers of all reservable items that
-		// // the customer reserved.
-		// RMHashtable reservationHT = cust.getReservations();
-		// for (Enumeration e = reservationHT.keys(); e.hasMoreElements();) {
-		// String reservedKey = (String) (e.nextElement());
-		// ReservedItem reservedItem = cust.getReservedItem(reservedKey);
-		// Trace.info("RM::deleteCustomer(" + id + ", " + customerId
-		// + "): " + "deleting " + reservedItem.getCount()
-		// + " reservations " + "for item "
-		// + reservedItem.getKey());
-		// ReservableItem item = (ReservableItem) readData(id,
-		// reservedItem.getKey());
-		// item.setReserved(item.getReserved() - reservedItem.getCount());
-		// item.setCount(item.getCount() + reservedItem.getCount());
-		// Trace.info("RM::deleteCustomer(" + id + ", " + customerId
-		// + "): " + reservedItem.getKey()
-		// + " reserved/available = " + item.getReserved() + "/"
-		// + item.getCount());
-		// }
-		// // Remove the customer from the storage.
-		// removeData(id, cust.getKey());
-		// Trace.info("RM::deleteCustomer(" + id + ", " + customerId + ") OK.");
-		return true;
-		// }
-	}
+	// Delete customer from the database.
+		@Override
+		public boolean deleteCustomer(int id, int customerId) {
+			// TODO
+			Trace.info("RM::deleteCustomer(" + id + ", " + customerId + ") called.");
+			// Check if customer exists
+			String customerInfo = queryCustomerInfo(id, customerId);
+			// Check if customer exists
+			if (customerInfo.isEmpty()) {
+				Trace.info("Customer does not exist");
+				return false;
+			} else {
+				Trace.info("Found customer: " + customerInfo);
+			}
 
-	// Return data structure containing customer reservation info.
-	// Returns null if the customer doesn't exist.
-	// Returns empty RMHashtable if customer exists but has no reservations.
-	public RMHashtable getCustomerReservations(int id, int customerId) {
-		// Trace.info("RM::getCustomerReservations(" + id + ", " + customerId
-		// + ") called.");
-		// Customer cust = (Customer) readData(id, Customer.getKey(customerId));
-		// if (cust == null) {
-		// Trace.info("RM::getCustomerReservations(" + id + ", " + customerId
-		// + ") failed: customer doesn't exist.");
-		// return null;
-		// } else {
-		// return cust.getReservations();
-		// }
-		return null;
-	}
+			RMHashtable reservations = getCustomerReservations(id, customerId);
+			for (Enumeration e = reservations.keys(); e.hasMoreElements();) {
+				
+			}
+			// // Increase the reserved numbers of all reservable items that
+			// // the customer reserved.
+			// RMHashtable reservationHT = cust.getReservations();
+			// for (Enumeration e = reservationHT.keys(); e.hasMoreElements();) {
+			// String reservedKey = (String) (e.nextElement());
+			// ReservedItem reservedItem = cust.getReservedItem(reservedKey);
+			// Trace.info("RM::deleteCustomer(" + id + ", " + customerId
+			// + "): " + "deleting " + reservedItem.getCount()
+			// + " reservations " + "for item "
+			// + reservedItem.getKey());
+			// ReservableItem item = (ReservableItem) readData(id,
+			// reservedItem.getKey());
+			// item.setReserved(item.getReserved() - reservedItem.getCount());
+			// item.setCount(item.getCount() + reservedItem.getCount());
+			// Trace.info("RM::deleteCustomer(" + id + ", " + customerId
+			// + "): " + reservedItem.getKey()
+			// + " reserved/available = " + item.getReserved() + "/"
+			// + item.getCount());
+			// }
+			// // Remove the customer from the storage.
+			// removeData(id, cust.getKey());
+			// Trace.info("RM::deleteCustomer(" + id + ", " + customerId + ") OK.");
+			return true;
+			// }
+		}
+
+		// Return data structure containing customer reservation info.
+		// Returns null if the customer doesn't exist.
+		// Returns empty RMHashtable if customer exists but has no reservations.
+		@Override
+		public void getCustomerReservations(int id, int customerId) {
+
+			Trace.info("RM::getCustomerReservations(" + id + ", " + customerId
+					+ ") called.");
+
+			MWClient client = getNewCustomerClient();
+			RMHashtable reservations = client.getCustomerReservations(id,customerId);
+//			return reservations;
+			
+		}
 
 	// Return a bill.
 	@Override
@@ -489,13 +495,17 @@ public class Middleware implements server.ws.ResourceManager {
 		MWClient carClient, roomClient = null, flightClient = null;
 		// First try the car
 		carClient = getNewCarClient(); 
-		carSuccess = carClient.reserveCar(id, customerId, location);
+		
+		if(car){
+			carSuccess = carClient.reserveCar(id, customerId, location);
+		} 
+		
 		if (carSuccess) {
 			Trace.info("car reserved successfully");
 		}
 
 		// Don't bother with room if the car didn't succeed
-		if (carSuccess) {
+		if (room && (!car || carSuccess)) {
 			roomClient = getNewRoomClient();
 			roomSuccess = roomClient.reserveRoom(id, customerId, location);
 		}
@@ -503,7 +513,9 @@ public class Middleware implements server.ws.ResourceManager {
 			Trace.info("room reserved successfully");
 		}
 		// Don't bother with flight if room didn't succeed
-		if (roomSuccess) {
+		//Did we need a room? If so it has to succeed.
+		//Did we need a car? if so it has to succeed 
+		if ((!room || (room && roomSuccess)) && (!car || (car && carSuccess))) {
 			flightClient = getNewFlightClient();
 			for (Object fNumber : flightNumbers) {
 				int flightNumber = Integer.parseInt(fNumber.toString());
@@ -518,10 +530,12 @@ public class Middleware implements server.ws.ResourceManager {
 
 		}
 		
-
-		boolean removeCar = carSuccess && !(roomSuccess || flightSuccess);
-		boolean removeRoom = roomSuccess && !flightSuccess;
-		boolean removeFlights = numFlightsReserved > 0 && !flightSuccess;
+		boolean flightFailed = !flightSuccess;
+		boolean roomFailed = (room && !roomSuccess);
+		
+		boolean removeCar = (car && carSuccess) && (roomFailed ||  flightFailed);
+		boolean removeRoom = (room && roomSuccess) && flightFailed;
+		boolean removeFlights = numFlightsReserved > 0 && flightFailed;
 
 		if (removeCar) {
 			

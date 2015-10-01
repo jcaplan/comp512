@@ -3,6 +3,8 @@ package middleware.client;
 import java.util.*;
 import java.io.*;
 
+import server.RMHashtable;
+
 public class MWClient extends WSClient {
 
 	public MWClient(String serviceName, String serviceHost, int servicePort)
@@ -206,4 +208,6 @@ public class MWClient extends WSClient {
 		}
 		return itemStatus;
 	}
+
+
 }

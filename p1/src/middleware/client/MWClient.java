@@ -5,6 +5,7 @@ import java.io.*;
 
 import server.Car;
 import server.Flight;
+import server.RMHashtable;
 import server.Room;
 
 public class MWClient extends WSClient {
@@ -257,5 +258,15 @@ public class MWClient extends WSClient {
 		}
 		return itemStatus;
 		
+	}
+
+	public RMHashtable getCustomerReservations(int id, int customerId) {
+		RMHashtable reservations = null;
+		try{
+			reservations = proxy.getCustomerReservations(id,customerId);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return reservations;
 	}
 }

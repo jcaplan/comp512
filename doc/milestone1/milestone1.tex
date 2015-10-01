@@ -161,7 +161,7 @@ The server required several modifications to support the middleware. The origina
 
 The middleware implementation is fairly straight-forward. It consists of a server that implements the ResourceManager interface. Upon a call from a client, the MW methods create a new client object to pass the request to the appropriate RM server.
 
- The main difficulty in the MW design is to safely handle the itinerary requests. 
+ The main difficulty in the MW design is to safely handle the itinerary requests which consist of one or several flights as well as a room and car reservation. 
 
  
 

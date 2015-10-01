@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="help" name="project">
+
+    <property name="client-service.name" value="rm"/>
+    <property name="client-service.host" value="localhost"/>
+    <property name="client-service.port" value="8080"/>
+
+    <property name="mw-service1.name" value="rm"/>
+    <property name="mw-service1.host" value="localhost"/>
+    <property name="mw-service1.port" value="8080"/>
+    <property name="mw-service2.name" value="rm"/>
+    <property name="mw-service2.host" value="localhost"/>
+    <property name="mw-service2.port" value="8080"/>
+    <property name="mw-service3.name" value="rm"/>
+    <property name="mw-service3.host" value="localhost"/>
+    <property name="mw-service3.port" value="8080"/>
+    <property name="mw-service4.name" value="rm"/>
+    <property name="mw-service4.host" value="localhost"/>
+    <property name="mw-service4.port" value="8080"/>
+    <property name="server-service.name" value="rm"/>
+    <property name="server-service.host" value="localhost"/>
+    <property name="server-service.port" value="8080"/>
+    <property name="server.dir" value="${basedir}/src/server"/>
+    <property name="middleware.dir" value="${basedir}/src/middleware/server"/>
+
+    <path id="classpath">
+        <pathelement location="${java.home}/../lib/tools.jar"/>
+        <pathelement location="${java.home}/../jre/lib/rt.jar"/>
+        <pathelement location="${basedir}/build/"/>
+<!--         <fileset dir="${basedir}/lib">
+            <include name="*.jar"/>
+        </fileset> -->
+    </path>
+
+    <target name="clean">
+        <delete dir="${basedir}/build" includeEmptyDirs="true"/>
+    </target>
+
+    <target name="setup">
+        <mkdir dir="${basedir}/build"/>
+    </target>
+
+
+<!-- Server -->
+
+    <target name="build-server" depends="setup">
+         <javac
+            fork="true"
+            srcdir="${basedir}/src"
+            destdir="${basedir}/build/"
+            includes="server/**">
+            <classpath refid="classpath"/>
+        </javac>
+    </target>
+
+    <target name="server" depends="build-server">
+        <java classname="server.Main">
+            <classpath>
+                <path refid="classpath"/>
+                <pathelement location="${basedir}/build"/>
+            </classpath>
+            <arg value="${server-service.port}"/>
+        </java>
+    </target>
+
+
+
+<!-- middleware -->
+   
+
+<!-- client -->
+    
+
+    <target name="build-client" depends="setup">
+        <javac
+                fork="true"
+                srcdir="${basedir}/src"
+                destdir="${basedir}/build/"
+                includes="client/**">
+            <classpath refid="classpath"/>
+        </javac>
+    </target>
+
+    <target name="client" depends="build-client">
+        <java classname="client.Test00">
+            <classpath>
+                <path refid="classpath"/>
+                <pathelement location="${basedir}/build"/>
+            </classpath>
+            <arg value="${client-service.name}"/>
+            <arg value="${client-service.host}"/>
+            <arg value="${client-service.port}"/>
+        </java>
+    </target>
+
+
+
+    <target name="help">
+        <echo message="server:  Builds and deploys the service"/>
+        <echo message="client:  Builds and runs the client"/>
+    </target>
+    
+</project>

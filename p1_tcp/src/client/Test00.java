@@ -15,7 +15,6 @@ public class Test00 {
             String serviceName = args[0];
             String serviceHost = args[1];
             int servicePort = Integer.parseInt(args[2]);
-            
             Client client = new Client(serviceName, serviceHost, servicePort);
             
 //            client.run();

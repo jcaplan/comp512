@@ -55,7 +55,9 @@ public class Client extends client.TCPClient {
 				e.printStackTrace();
 			}
         }
-		System.out.print(result);
+
+        System.out.println("sending command: " + command);
+		System.out.println("result: " + result);
         return result;
         
     }

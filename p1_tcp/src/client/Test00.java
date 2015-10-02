@@ -32,10 +32,29 @@ public class Test00 {
 	            client.handleRequest("querycar,0,0");
             }
             
+            
             client.handleRequest("newflight,0,0,200,200");
             client.handleRequest("newroom,0,0,300,300");
-            client.handleRequest("itinerary,0,"+client1 +",0,0,0,0");
+            
+            client.handleRequest("itinerary,0,"+client1 +",0,0,true,true");
+            
 
+            client.handleRequest("querycar,0,0");
+            client.handleRequest("queryflight,0,0");
+            client.handleRequest("queryroom,0,0");
+            
+            
+//            client.handleRequest("deleteCustomer,0," + client1);
+//            client.handleRequest("deleteCustomer,1," + client0);
+//
+//            
+//            client.handleRequest("queryCustomer,0," + client1);
+//            client.handleRequest("queryCustomer,0," + client0);
+//            client.handleRequest("querycar,0,0");
+//            client.handleRequest("queryflight,0,0");
+//            client.handleRequest("queryroom,0,0");
+//            
+  
 
             client.close();
             

@@ -75,13 +75,13 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 
 	// Query the price of an item.
 	protected int queryPrice(int id, String key) {
-		Trace.info("RM::queryCarsPrice(" + id + ", " + key + ") called.");
+		Trace.info("RM::queryPrice(" + id + ", " + key + ") called.");
 		ReservableItem curObj = (ReservableItem) readData(id, key);
 		int value = 0;
 		if (curObj != null) {
 			value = curObj.getPrice();
 		}
-		Trace.info("RM::queryCarsPrice(" + id + ", " + key + ") OK: $" + value);
+		Trace.info("RM::queryPrice(" + id + ", " + key + ") OK: $" + value);
 		return value;
 	}
 

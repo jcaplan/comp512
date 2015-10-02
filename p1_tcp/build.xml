@@ -67,6 +67,33 @@
 
 <!-- middleware -->
    
+    <target name="build-middleware" depends="setup">
+        <javac
+                fork="true"
+                srcdir="${basedir}/src"
+                destdir="${basedir}/build/"
+                includes="middleware/**">
+            <classpath refid="classpath"/>
+        </javac>
+    </target>
+
+    <target name="middleware" depends="build-middleware">
+        <java classname="middleware.main.Main">
+            <classpath>
+                <path refid="classpath"/>
+                <pathelement location="${basedir}/build"/>
+            </classpath>
+            <arg value="${server-service.port}"/>
+            <arg value="${mw-service1.host}"/>
+            <arg value="${mw-service1.port}"/>
+            <arg value="${mw-service2.host}"/>
+            <arg value="${mw-service2.port}"/>
+            <arg value="${mw-service3.host}"/>
+            <arg value="${mw-service3.port}"/>
+            <arg value="${mw-service4.host}"/>
+            <arg value="${mw-service4.port}"/>
+        </java>
+    </target>
 
 <!-- client -->
     

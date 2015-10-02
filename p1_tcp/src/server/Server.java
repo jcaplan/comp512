@@ -19,7 +19,7 @@ public class Server {
 	public void run() {
 		while(true){
 			try {
-				new ServerThread(serverSocket.accept(),proxy).run();
+				new ServerThread(serverSocket.accept(),proxy).start();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

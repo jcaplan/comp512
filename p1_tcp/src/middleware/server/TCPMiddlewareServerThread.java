@@ -197,7 +197,7 @@ public class TCPMiddlewareServerThread extends Thread{
                 if (needCar) {
                     String queryCarPrice = String.format("querycarprice, %d, %s", id, location);
                     price = Integer.parseInt(dispatchCommand(queryCarPrice));
-                    String reserveCustomer = String.format("reservecustomer %d, %d, %s, %s, %d", id, customer,
+                    String reserveCustomer = String.format("reservecustomer, %d, %d, %s, %s, %d", id, customer,
                             Car.getKey(location), location, price);
                     dispatchCommand(reserveCustomer);
                 }
@@ -205,7 +205,7 @@ public class TCPMiddlewareServerThread extends Thread{
                 if (needRoom) {
                     String queryRoomPrice = String.format("queryroomprice, %d, %s", id, location);
                     price = Integer.parseInt(dispatchCommand(queryRoomPrice));
-                    String reserveCustomer = String.format("reservecustomer %d, %d, %s, %s, %d", id, customer,
+                    String reserveCustomer = String.format("reservecustomer, %d, %d, %s, %s, %d", id, customer,
                             Room.getKey(location), location, price);
                     dispatchCommand(reserveCustomer);
 
@@ -215,7 +215,7 @@ public class TCPMiddlewareServerThread extends Thread{
                     int flightNumber = Integer.parseInt(fNumber.toString());
                     String queryFlightPrice = String.format("queryflightprice, %d, %d", id, flightNumber);
                     price = Integer.parseInt(dispatchCommand(queryFlightPrice));
-                    String reserveCustomer = String.format("reservecustomer %d, %d, %s, %s, %d", id, customer,
+                    String reserveCustomer = String.format("reservecustomer, %d, %d, %s, %s, %d", id, customer,
                             Flight.getKey(flightNumber), location, price);
                     dispatchCommand(reserveCustomer);
                 }
@@ -252,14 +252,16 @@ public class TCPMiddlewareServerThread extends Thread{
 
 
         String commandInLowerCase = command.toLowerCase();
-        if (commandInLowerCase.contains("car")){
-            out = this.carOut;
-            in = this.carIn;
-        }
-        else if (commandInLowerCase.contains("customer")){
+        //Check customer first!
+        if (commandInLowerCase.contains("customer")){
             out = this.customerOut;
             in = this.customerIn;
         }
+        else if (commandInLowerCase.contains("car")){
+            out = this.carOut;
+            in = this.carIn;
+        }
+
         else if (commandInLowerCase.contains("room")){
             out = this.roomOut;
             in = this.roomIn;

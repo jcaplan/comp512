@@ -288,10 +288,8 @@ public class Middleware implements server.ws.ResourceManager {
 	}
 
 	// Delete customer from the database.
-	// Delete customer from the database.
 		@Override
 		public boolean deleteCustomer(int id, int customerId) {
-			// TODO
 			Trace.info("RM::deleteCustomer(" + id + ", " + customerId + ") called.");
 			// Check if customer exists
 			String customerInfo = queryCustomerInfo(id, customerId);

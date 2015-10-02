@@ -73,7 +73,7 @@ public class Client extends client.WSClient {
             client.handleRequest("queryflight,0,0");
             client.handleRequest("queryroom,0,0");
             
-            
+  
         } catch(Exception e) {
             e.printStackTrace();
         }

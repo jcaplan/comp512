@@ -1,9 +1,11 @@
 package middleware.main;
 
 
-import java.io.File;
-import org.apache.catalina.LifecycleException;
-import org.apache.catalina.startup.Tomcat;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.util.ArrayList;
+
+import middleware.server.TCPMiddlewareServerThread;
 
 
 public class Main {
@@ -11,57 +13,34 @@ public class Main {
     public static void main(String[] args) 
     throws Exception {
     
-        if (args.length != 15 ) {
+        if (args.length != 9 ) {
             System.out.println(
-                "Usage: java Main <server-service-name> <server-service-port> <server-deploy-dir>" +
-                "<client-service-name>  <client-service-host> <client-service-port>");
+                "Usage: java Main <middleware-server-port-number> <car-rm-hostname> <car-rm-port> " +
+                        "<room-rm-hostname> <room-rm-port> <flight-rm-hostname> <flight-rm-port> " +
+                        "<customer-rm-hostname> <customer-rm-port> ");
             System.exit(-1);
         }
-    
-        String serviceName = args[0];
-        int port = Integer.parseInt(args[1]);
-        String deployDir = args[2];
 
+        ArrayList<String> hostnames = new ArrayList<>();
 
+        ArrayList<Integer> portnumbers = new ArrayList<>();
 
-        Tomcat tomcat = new Tomcat();
-        tomcat.setPort(port);
-        tomcat.setBaseDir(deployDir);
+        for (int i = 1; i<9; i += 2){
+            hostnames.add(args[i]);
+            portnumbers.add(Integer.parseInt(args[i+1]));
+        }
 
-        tomcat.getHost().setAppBase(deployDir);
-        tomcat.getHost().setDeployOnStartup(true);
-        tomcat.getHost().setAutoDeploy(true);
+        int portNumber = Integer.parseInt(args[0]);
+        boolean listening = true;
 
-        //tomcat.addWebapp("", new File(deployDir).getAbsolutePath());
-
-        tomcat.addWebapp("/" + serviceName, 
-                new File(deployDir + "/" + serviceName).getAbsolutePath());
-
-
-        String clientServiceName = args[3];
-        String clientServiceHost = args[4];
-        int clientPort = Integer.parseInt(args[5]);
-        // ResourceManagerImpl.setCarClient(clientServiceName,clientServiceHost,clientPort);
-
-
-        clientServiceName = args[6];
-        clientServiceHost = args[7];
-        clientPort = Integer.parseInt(args[8]);
-        // ResourceManagerImpl.setRoomClient(clientServiceName,clientServiceHost,clientPort);
-
-        clientServiceName = args[9];
-        clientServiceHost = args[10];
-        clientPort = Integer.parseInt(args[11]);
-        // ResourceManagerImpl.setFlightClient(clientServiceName,clientServiceHost,clientPort);
-
-        clientServiceName = args[12];
-        clientServiceHost = args[13];
-        clientPort = Integer.parseInt(args[14]);
-        // ResourceManagerImpl.setCustomerClient(clientServiceName,clientServiceHost,clientPort);
-        // Client client = ResourceManagerImpl.getNewCustomerClient();
-        
-        tomcat.start();
-        tomcat.getServer().await();
+        try (ServerSocket serverSocket = new ServerSocket(portNumber)) {
+            while (listening) {
+                new TCPMiddlewareServerThread(serverSocket.accept(), hostnames, portnumbers).start();
+            }
+        } catch (IOException e) {
+            System.err.println("Could not listen on port " + portNumber);
+            System.exit(-1);
+        }
     }
     
 }

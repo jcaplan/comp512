@@ -540,6 +540,56 @@ public class ServerThread extends Thread{
 				e.printStackTrace();
 			}
 			break;
+            case 23:
+                try {
+                    id = getInt(arguments.elementAt(1));
+                    int customer = getInt(arguments.elementAt(2));
+                    location = getString(arguments.elementAt(3));
+                    proxy.cancelReserveCar(id, customer,location);
+                } catch (Exception e) {
+                    System.out.println("EXCEPTION: ");
+                    System.out.println(e.getMessage());
+                    e.printStackTrace();
+                }
+                break;
+            case 24:
+                try {
+                    id = getInt(arguments.elementAt(1));
+                    int customer = getInt(arguments.elementAt(2));
+                    location = getString(arguments.elementAt(3));
+                    proxy.cancelReserveRoom(id, customer, location);
+                } catch (Exception e) {
+                    System.out.println("EXCEPTION: ");
+                    System.out.println(e.getMessage());
+                    e.printStackTrace();
+                }
+                break;
+            case 25:
+                try {
+                    id = getInt(arguments.elementAt(1));
+                    int customer = getInt(arguments.elementAt(2));
+                    flightNumber = getInt(arguments.elementAt(3));
+                    proxy.cancelReserveFlight(id, customer, flightNumber);
+                } catch (Exception e) {
+                    System.out.println("EXCEPTION: ");
+                    System.out.println(e.getMessage());
+                    e.printStackTrace();
+                }
+                break;
+            case 26:
+                try {
+                    id = getInt(arguments.elementAt(1));
+                    int customer = getInt(arguments.elementAt(2));
+                    String key = getString(arguments.elementAt(3));
+                    location = getString(arguments.elementAt(4));
+                    price = getInt(arguments.elementAt(5));
+                    proxy.reserveCustomer(id, customer, key, location, price);
+                } catch (Exception e) {
+                    System.out.println("EXCEPTION: ");
+                    System.out.println(e.getMessage());
+                    e.printStackTrace();
+                }
+                break;
 
 		default:
 			System.out.println("The interface does not support this command.");
@@ -605,6 +655,14 @@ public class ServerThread extends Thread{
 			return 21;
 		else if (argument.compareToIgnoreCase("newcustomerid") == 0)
 			return 22;
+        else if (argument.compareToIgnoreCase("cancelcar") == 0)
+            return 23;
+        else if (argument.compareToIgnoreCase("cancelroom") == 0)
+            return 24;
+        else if (argument.compareToIgnoreCase("cancelflight") == 0)
+            return 25;
+        else if (argument.compareToIgnoreCase("reservecustomer") == 0)
+            return 26;
 		else
 			return 666;
 	}

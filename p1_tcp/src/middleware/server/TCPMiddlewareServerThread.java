@@ -135,7 +135,7 @@ public class TCPMiddlewareServerThread extends Thread {
             String[] keyArray = tokens[1].split("-");
             System.out.println("DEBUG: " + keyArray[0]);
             if (keyArray[0].equals("flight")){
-                String cancelReserveFlight = String.format("cancelflight,%d %d,%s", id, customer, Integer.parseInt(keyArray[1]));
+                String cancelReserveFlight = String.format("cancelflight,%d, %d,%s", id, customer, Integer.parseInt(keyArray[1]));
                 dispatchCommand(cancelReserveFlight);
             }
             else if(keyArray[0].equals("car")) {

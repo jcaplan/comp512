@@ -396,35 +396,11 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 	@Override
 	public boolean deleteCustomer(int id, int customerId) {
 		Trace.info("RM::deleteCustomer(" + id + ", " + customerId + ") called.");
-		Customer cust = (Customer) readData(id, Customer.getKey(customerId));
-		if (cust == null) {
-			Trace.warn("RM::deleteCustomer(" + id + ", " + customerId
-					+ ") failed: customer doesn't exist.");
-			return false;
-		} else {
-			// Increase the reserved numbers of all reservable items that
-			// the customer reserved.
-			RMHashtable reservationHT = cust.getReservations();
-			for (Enumeration e = reservationHT.keys(); e.hasMoreElements();) {
-				String reservedKey = (String) (e.nextElement());
-				ReservedItem reservedItem = cust.getReservedItem(reservedKey);
-				Trace.info("RM::deleteCustomer(" + id + ", " + customerId
-						+ "): " + "deleting " + reservedItem.getCount()
-						+ " reservations " + "for item "
-						+ reservedItem.getKey());
-				ReservableItem item = (ReservableItem) readData(id,
-						reservedItem.getKey());
-				item.setReserved(item.getReserved() - reservedItem.getCount());
-				item.setCount(item.getCount() + reservedItem.getCount());
-				Trace.info("RM::deleteCustomer(" + id + ", " + customerId
-						+ "): " + reservedItem.getKey()
-						+ " reserved/available = " + item.getReserved() + "/"
-						+ item.getCount());
-			}
-			// Remove the customer from the storage.
-			removeData(id, cust.getKey());
-			Trace.info("RM::deleteCustomer(" + id + ", " + customerId + ") OK.");
-			return true;
+		synchronized(syncLock){
+			Customer cust = (Customer) readData(id, Customer.getKey(customerId));
+				removeData(id, cust.getKey());
+				Trace.info("RM::deleteCustomer(" + id + ", " + customerId + ") OK.");
+				return true;
 		}
 	}
 

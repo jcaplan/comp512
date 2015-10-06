@@ -195,6 +195,8 @@ Postponing the synchronization block until line 10 results in the exact same pro
 It is necessary to synchronize all accesses to objects from the moment their reference is retrieved until the actions that must be taken with them are completed. 
 The updated code is shown in Listing~\ref{l:ex-sync}.
 
+There is another issue regarding the deletion of clients. It is possible that a flight could be deleted after the MW retrieves the customer data but before the flights can be cancelled. It does not seem like an adequate solution to force a synchronized block at the middleware level. This may be less of a synchronization issue and more of a domain specific issue. An argument could be made that this type of error must be caught by the middleware and appropriate actions (e.g. cancellation or refund) should be initiated. Note that this problem does not create a runtime error but we do feel that some extra actions should be taken by the middleware in case the cancellation of a reservation fails.
+
 \includecode{example.java}{This code has several potential synchronization issues.}{l:ex}
 
 \includecode{example-sync.java}{Almost the entire method body must be synchronized to prevent potential null pointer exceptions.}{l:ex-sync}

@@ -46,11 +46,16 @@ public class Client extends client.TCPClient {
         if(command.isEmpty()){
         	System.exit(0);
         } else {
-        	out.println(command);
         	try {
-        		result = in.readLine();
+				out.writeObject(command);
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+        	try {
+        		result = (String)in.readObject();
 
-			} catch (IOException e) {
+			} catch (IOException | ClassNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}

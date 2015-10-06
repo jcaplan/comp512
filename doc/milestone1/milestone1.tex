@@ -223,6 +223,14 @@ If we had more time or if this were a real (i.e. not class) and possibly agile d
 
 \section{Thread management in middleware and resource managers}
 
+A new thread must be created in the MW or RM when a client connects to the MW or the MW connects to the RM for a specific client, respectively. This allows as much work to be done concurrently per client as possible despite the fact that some RM methods must be synchronized. The basic flow is shown in Figure~\ref{f:threads}. Both clients must initially pass through the main thread when initiating communication. The main MW thread then creates a dedicated thread to deal with that client. The same process occurs between the MW and the RM. The client communicates directly with the dedicated thread when it makes future requests.
+
+\begin{figure}
+\centering
+\includegraphics[scale=1]{figures/threads.pdf}
+\caption{Two clients communicate with RM through the MW at same time.}
+\label{f:threads}
+\end{figure} 
 
 
 \end{document}

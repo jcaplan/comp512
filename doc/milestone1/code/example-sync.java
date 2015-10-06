@@ -8,7 +8,7 @@ protected boolean deleteItem(int id, String key) {
 					+ " item doesn't exist.");
 			return false;
 		} else {
-			//etc
+			//Actions on curObj
 		}
 	}
 }

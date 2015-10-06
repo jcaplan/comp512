@@ -61,7 +61,7 @@ public class Client extends client.WSClient {
             client.handleRequest("querycar,0,0");
             client.handleRequest("queryflight,0,0");
             client.handleRequest("queryroom,0,0");
-            
+            client.handleRequest("queryCustomer,0," + client1);
             
             client.handleRequest("deleteCustomer,0," + client1);
             client.handleRequest("deleteCustomer,1," + client0);

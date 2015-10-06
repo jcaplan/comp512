@@ -8,15 +8,14 @@ import server.ws.*;
 public class TCPClient {
 
 	ResourceManager proxy;
-	PrintWriter out;
-	BufferedReader in;
+	ObjectOutputStream out;
+	ObjectInputStream in;
 	Socket socket;
 	public TCPClient(String serviceHost, int servicePort)
 			throws UnknownHostException, IOException {
 		socket = new Socket(serviceHost, servicePort);
-		out = new PrintWriter(socket.getOutputStream(), true);
-		in = new BufferedReader(new InputStreamReader(
-				socket.getInputStream()));
+		out = new ObjectOutputStream(socket.getOutputStream());
+		in = new ObjectInputStream(socket.getInputStream());
 
 	}
 	

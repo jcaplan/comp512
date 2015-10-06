@@ -1,9 +1,9 @@
 package client;
 
-//Test 00 : basic operations
+//Test 01 : multithreaded client
 
 
-public class Test00 {
+public class Test01 {
 	
 	
     public static void main(String[] args) {

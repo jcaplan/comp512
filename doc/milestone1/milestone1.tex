@@ -94,7 +94,7 @@
 }
 
 
-\newcommand{\includecode}[2]{\lstinputlisting[caption=#2,captionpos=t,language=C]{code/#1}}
+\newcommand{\includecode}[3]{\lstinputlisting[caption=#2,captionpos=t,language=Java,label=#3]{code/#1}}
 
 
 %----------------------------------------------------------------------------------------
@@ -144,7 +144,10 @@ TCP instead of web services.
 
 \section{Distributed web services}
 
-The distributed system consists of three components: the end-user client, the middleware (MW), and the resource manager (RM) servers. We chose to have four RMs: one for each type of reservation item as well as one for customers. The middleware consists of a client and a server both of which are modified versions of the original code provided. The main functionality that differentiates the MW from the RMs is the booking of itineraries which requires coordination between the MW and each RM. 
+The distributed system consists of three components: the end-user client, the middleware (MW), and the resource manager (RM) servers. 
+We chose to have four RMs: one for each type of reservation item as well as one for customers. 
+The middleware consists of a client and a server both of which are modified versions of the original code provided. 
+The main functionality that differentiates the MW from the RMs is the booking of itineraries which requires coordination between the MW and each RM. 
 
 
 This section will briefly describe the changes made to the client and RMs and then discuss the middleware design. We assume the reader is familiar with the original source code.
@@ -155,17 +158,70 @@ For convenience, the parsing of commands was separated from the main run loop in
 	
 	
 \subsection{RM server modifications}
-The server required several modifications to support the middleware. The original RM implementation assumed that customer information was located in the same hash table as the services. The reservation of items consisted of two main steps: check that the item was available and reserve it, then update the customer data structure so the reserved item is on their bill. In order to allow the middleware to coordinate this process among the RMs, it was necessary to seperate the reservation of items and the updating of customer data into separate methods and to expose these methods to the ResourceManager interface. It was also necessary to allow the MW to cancel a reservation (details in the section on MW). Methods were added to the interface to allow explicit updating of the customer reservations and cancelling reservations on specific items. 
+The server required several modifications to support the middleware. 
+The original RM implementation assumed that customer information was located in the same hash table as the services. 
+The reservation of items consisted of two main steps: check that the item was available and reserve it, then update the customer data structure so the reserved item is on their bill. 
+In order to allow the middleware to coordinate this process among the RMs, it was necessary to seperate the reservation of items and the updating of customer data into separate methods and to expose these methods to the ResourceManager interface. 
+It was also necessary to allow the MW to cancel a reservation (details in the section on MW). 
+Methods were added to the interface to allow explicit updating of the customer reservations and cancelling reservations on specific items. 
     	
 \subsection{Middleware implementation}
 
-The middleware implementation is fairly straight-forward. It consists of a server that implements the ResourceManager interface. Upon a call from a client, the MW methods create a new client object to pass the request to the appropriate RM server.
+The middleware implementation is fairly straight-forward. 
+It consists of a server that implements the ResourceManager interface. Upon a call from a client, the MW methods create a new client object to pass the request to the appropriate RM server.
 
- The main difficulty in the MW design is to safely handle the itinerary requests which consist of one or several flights as well as a room and car reservation. 
+The main difficulty in the MW design is to safely handle the itinerary requests which consist of one or several flights as well as a room and car reservation. 
+The algorithm for reserving an itinerary is shown in Figure~\ref{f:res-itin}. The MW attempts to successively reserve each item in the itinerary. The itinerary is cancelled if any of the items cannot be reserved. In this case the RMs must be notified for each item that was successfully reserved. 
 
+A similar approach was used for deleting customers. In this case, the customer's bill was retrieved from the client RM and each item was cancelled.
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.6]{figures/res-itin}
+\caption{Algorithm for reserving itinerary.}
+\label{f:res-itin}
+\end{figure}
+
+\subsection{Synchronization issues}
+
+The code provided ensured that only one thread can have read or write access to the RMs hash table at a time. 
+This is not sufficient as the following example will illustrate. 
+Consider the code in Listing~\ref{l:ex}. 
+First, the object \texttt{curObj} must be retrieved from the hash table and we know that this is itself a safe retrieval and \texttt{curObj} may not be corrupted. 
+At line 6 there is a check to see if \texttt{curObj} is null. 
+This check is potentially unsafe because it could be that \texttt{curObj} is not null at line 6 but is null at line 11. 
+It may be tempting to synchronize on \texttt{curObj} itself, but this is potentially a null pointer exception if the synchronization occurs before the check at line 5. 
+Postponing the synchronization block until line 10 results in the exact same problem as before. 
+It is necessary to synchronize all accesses to objects from the moment their reference is retrieved until the actions that must be taken with them are completed. 
+The updated code is shown in Listing~\ref{l:ex-sync}.
+
+\includecode{example.java}{This code has several potential synchronization issues.}{l:ex}
+
+\includecode{example-sync.java}{Almost the entire method body must be synchronized to prevent potential null pointer exceptions.}{l:ex-sync}
+
+\section{TCP Implementation} 
+
+Our design goals for the TCP based system were to reuse as much of the original code as possible and to simplify the communication protocol. 
+We wanted to avoid spending time debugging the passing of messages between processes and instead focus on the actions taken by each process based on the information contained in the message. 
+
+\section{Communication protocol}
+Very little information needs to flow between processes and code already existed to manually parse command line entries from the client. 
+It made sense to have the client send unparsed commands directly over TCP and move the pre-existing code for parsing commands to the RMs. 
+Setting up the command parsing on the RM was very simple because the client code was already designed to interface with the \texttt{ResourceManagerImpl} class.  
+The middleware would then parse the first argument in the command and forward it to the correct RM. 
+The RM then fully parses the command and updates its data structures accordingly. 
+In the case of reserving an itinerary, the MW needed to parse the entire command and build new commands to make reservations with each RM. 
+The RMs always return a string representing the original integer or boolean return types. 
+
+The possible downside of transmitting information in this manner is that manually constructing and parsing strings may prove cumbersome and error prone if large data types were required. 
+Packing information into objects and relying on java to serialize their represention would be easier to manage if the data passing between processes was more complex. 
+However, we think our current implementation is fairly lightweight and effective given that parsing code was already provided and the small message sizes. 
+If we had more time or if this were a real (i.e. not class) and possibly agile design project, it might still have made sense to start with this design as a transitional step towards a more robust implementation using objects as we don't want to change too much of the implementation in a single iteration. 
  
 
-\section{TCP Implementation}
+
+
+\section{Thread management in middleware and resource managers}
 
 
 

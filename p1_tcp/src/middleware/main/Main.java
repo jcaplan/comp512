@@ -19,7 +19,7 @@ public class Main {
                         "<room-rm-hostname> <room-rm-port> <flight-rm-hostname> <flight-rm-port> " +
                         "<customer-rm-hostname> <customer-rm-port> ");
             System.exit(-1);
-        }
+        } 
 
         ArrayList<String> hostnames = new ArrayList<>();
 

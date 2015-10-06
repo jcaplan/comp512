@@ -1,5 +1,6 @@
 package client;
 
+
 //Test 01 : multithreaded client
 
 public class Test01 {
@@ -38,7 +39,6 @@ public class Test01 {
 		
 		for (int i = 0; i < NUM_THREADS; i++) {
 			clientThread[i].join();
-			clientThread[i].closeClient();
 
 		}
 
@@ -65,6 +65,5 @@ public class Test01 {
 
 		
 
-		setupClient.close();
 	}
 }

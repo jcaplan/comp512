@@ -215,10 +215,32 @@ The RM then fully parses the command and updates its data structures accordingly
 In the case of reserving an itinerary, the MW needed to parse the entire command and build new commands to make reservations with each RM. 
 The RMs always return a string representing the original integer or boolean return types. 
 
+The server classes that were added are shown in Figure~\ref{f:server-class}. The main Server class has a \texttt{ServerSocket} object and is responsible for waiting for new clients. The server creates a new \texttt{ServerThread} when a client is accepted. The \texttt{ServerThread} is responsible for the specific client socket and parsing the client requests. The parsed arguments can then be used to interact with the \texttt{ResourceManagerImpl} as was the case with the web services.
+
+
+
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.6]{figures/server-class.pdf}
+\caption{The additional classes for the RM servers.}
+\label{f:server-class}
+\end{figure}
+
+The middleware consists of two classes. The \texttt{Main} class functions like the \texttt{Server} class and waits for client connections before creating threads.
+The \texttt{TCPMiddlewareServerThread} (maybe some refactoring is still in order) is responsible for forwarding the request to the appropriate RM. A new client socket is created for each RM. The MW thread mostly sends commands without looking at their contents. The exceptions are \texttt{deleteCustomer} and \texttt{reserveItinerary}. Both these functions require several interactions with all the RMs.
+
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.6]{figures/middleware-class.pdf}
+\caption{The class diagram for the middleware.}
+\label{f:server-class}
+\end{figure}
+
 The possible downside of transmitting information in this manner is that manually constructing and parsing strings may prove cumbersome and error prone if large data types were required. 
 Packing information into objects and relying on java to serialize their represention would be easier to manage if the data passing between processes was more complex. 
 However, we think our current implementation is fairly lightweight and effective given that parsing code was already provided and the small message sizes. 
 If we had more time or if this were a real (i.e. not class) and possibly agile design project, it might still have made sense to start with this design as a transitional step towards a more robust implementation using objects as we don't want to change too much of the implementation in a single iteration. 
+ 
  
 
 
@@ -233,6 +255,12 @@ A new thread must be created in the MW or RM when a client connects to the MW or
 \caption{Two clients communicate with RM through the MW at same time.}
 \label{f:threads}
 \end{figure} 
+
+\section{Testing}
+
+The testing that we have done so far could be more extensive and automated. We also were not able to do any performance profiling. It would be interesting to profile the difference in performance between TCP and web-services quantitatively however we have noted that web services are observably at least ten times slower. We have written two main tests that are compatible with both implementations. The first test (\texttt{TestSingleClient}) simply checks that commands are executing correctly, returning both true and false depending on the status of the system. The second test (\texttt{Test01}) checks that the system can handle multithreading. Five client threads are created and each thread attempts to reserve as many itineraries of one car, room, and plane, as possible until there are no more resources left. Each thread then immediately deletes its customer. The test checks that after all that all the resources have been properly accounted for after all the customers have been deleted. The tests cover the basic functionality of the system and were useful in debugging despite their simplicity.
+
+
 
 
 \end{document}

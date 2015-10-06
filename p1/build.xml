@@ -246,7 +246,7 @@
     </target>
 
     <target name="client" depends="build-client">
-        <java classname="client.Client">
+        <java classname="client.Test01">
             <classpath>
                 <path refid="jaxws.classpath"/>
                 <pathelement location="${basedir}/build/classes"/>

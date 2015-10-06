@@ -21,6 +21,7 @@ public class TCPClient {
 	
 	public void close(){
 		try {
+			out.writeObject("quit");
 			socket.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

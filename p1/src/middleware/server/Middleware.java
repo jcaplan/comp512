@@ -324,17 +324,24 @@ public class Middleware implements server.ws.ResourceManager {
 					System.out.print(t);
 				}
 				System.out.println();
+				int numItems = Integer.parseInt(tokens[0]);
 				String[] keyArray = tokens[1].split("-");
 				MWClient client;
 				if (keyArray[0].equals("flight")){
-					client = getNewFlightClient();
-					client.cancelReserveFlight(id, customerId, Integer.parseInt(keyArray[1]));
+					for(int i = 0; i < numItems; i++){
+						client = getNewFlightClient();
+						client.cancelReserveFlight(id, customerId, Integer.parseInt(keyArray[1]));
+					}
 				} else if(keyArray[0].equals("car")) {
-					client = getNewCarClient();
-					client.cancelReserveCar(id,customerId,keyArray[1]);
+					for(int i = 0; i < numItems; i++){
+						client = getNewCarClient();
+						client.cancelReserveCar(id,customerId,keyArray[1]);
+					}
 				} else if(keyArray[0].equals("room")){
-					client = getNewRoomClient();
-					client.cancelReserveRoom(id,customerId,keyArray[1]);
+					for(int i = 0; i < numItems; i++){
+						client = getNewRoomClient();
+						client.cancelReserveRoom(id,customerId,keyArray[1]);
+					}
 				}
 			}
 				

@@ -78,7 +78,6 @@ public class TestSingleClient {
             System.out.println("Expected number of remaining rooms: " + INITIAL_ROOM_NUMBER);
             System.out.println("Result:" + client.handleRequest("queryroom,0,0"));
 
-            client.close();
 
         } catch (Exception e) {
             e.printStackTrace();

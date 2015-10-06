@@ -29,8 +29,5 @@ public class ClientTestThread extends Thread{
 		client.handleRequest("deletecustomer,0,"+clientId);
 	}
 
-	public void closeClient() {
-		client.close();
-	}
 
 }

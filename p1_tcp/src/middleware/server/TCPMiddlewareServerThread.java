@@ -1,6 +1,7 @@
 package middleware.server;
 
 import java.io.BufferedReader;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
@@ -42,9 +43,14 @@ public class TCPMiddlewareServerThread extends Thread {
 				clientSocket.getOutputStream());
 				ObjectInputStream in = new ObjectInputStream(
 						clientSocket.getInputStream())) {
-			String command, result;
-
-			while ((command = (String) in.readObject()) != null) {
+			String command = null, result;
+			
+			while (true) {
+				try{
+					command = (String) in.readObject();
+				} catch (EOFException e){
+					//Do nothing
+				}
 				if (command.equals("quit"))
 					break;
 
@@ -59,11 +65,11 @@ public class TCPMiddlewareServerThread extends Thread {
 			flightSeverSocket.close();
 			customerSeverSocket.close();
 			clientSocket.close();
-		} catch (IOException | ClassNotFoundException e) {
-			e.printStackTrace();
+		} catch(EOFException e){
+			//Do nothing
 		} catch (Exception e) {
             e.printStackTrace();
-        }
+        } 
     }
 
 	private void connectRMServers(List<String> rmHostnames,
@@ -132,19 +138,25 @@ public class TCPMiddlewareServerThread extends Thread {
                 System.out.print(t);
             }
             System.out.println();
+            int numItems = Integer.parseInt(tokens[0]);
             String[] keyArray = tokens[1].split("-");
-            System.out.println("DEBUG: " + keyArray[0]);
             if (keyArray[0].equals("flight")){
-                String cancelReserveFlight = String.format("cancelflight,%d, %d,%s", id, customer, Integer.parseInt(keyArray[1]));
-                dispatchCommand(cancelReserveFlight);
+            	for(int i = 0; i < numItems; i++){
+	                String cancelReserveFlight = String.format("cancelflight,%d, %d,%s", id, customer, Integer.parseInt(keyArray[1]));
+	                dispatchCommand(cancelReserveFlight);
+            	}
             }
-            else if(keyArray[0].equals("car")) {
-                String cancelReserveCar = String.format("cancelcar,%d,%d,%s", id, customer, keyArray[1]);
-                dispatchCommand(cancelReserveCar);
+            else if(keyArray[0].equals("car")) {interrupt();
+            	for(int i = 0; i < numItems; i++){
+	                String cancelReserveCar = String.format("cancelcar,%d,%d,%s", id, customer, keyArray[1]);
+	                dispatchCommand(cancelReserveCar);
+            	}
             }
             else if(keyArray[0].equals("room")){
-                String cancelReserveRoom = String.format("cancelroom,%d,%d,%s", id, customer, keyArray[1]);
-                dispatchCommand(cancelReserveRoom);
+            	for(int i = 0; i < numItems; i++){
+	            	String cancelReserveRoom = String.format("cancelroom,%d,%d,%s", id, customer, keyArray[1]);
+	                dispatchCommand(cancelReserveRoom);
+            	}
             }
         }
 

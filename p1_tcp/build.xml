@@ -109,7 +109,7 @@
     </target>
 
     <target name="client" depends="build-client">
-        <java classname="client.Test00">
+        <java classname="client.TestSingleClient">
             <classpath>
                 <path refid="classpath"/>
                 <pathelement location="${basedir}/build"/>

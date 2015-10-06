@@ -28,4 +28,48 @@ Inc.//DTD Web Application 2.3//EN"
         <session-timeout>120</session-timeout>
     </session-config>
 
+    <env-entry>
+        <env-entry-name>flight-service-host</env-entry-name>
+        <env-entry-value>lab1-14</env-entry-value>
+        <env-entry-type>java.lang.String</env-entry-type>
+    </env-entry>
+    <env-entry>
+        <env-entry-name>flight-service-port</env-entry-name>
+        <env-entry-value>28083</env-entry-value>
+        <env-entry-type>java.lang.Integer</env-entry-type>
+    </env-entry>
+
+    <env-entry>
+        <env-entry-name>room-service-host</env-entry-name>
+        <env-entry-value>lab1-14</env-entry-value>
+        <env-entry-type>java.lang.String</env-entry-type>
+    </env-entry>
+    <env-entry>
+        <env-entry-name>room-service-port</env-entry-name>
+        <env-entry-value>28082</env-entry-value>
+        <env-entry-type>java.lang.Integer</env-entry-type>
+    </env-entry>
+
+    <env-entry>
+        <env-entry-name>customer-service-host</env-entry-name>
+        <env-entry-value>lab1-14</env-entry-value>
+        <env-entry-type>java.lang.String</env-entry-type>
+    </env-entry>
+    <env-entry>
+        <env-entry-name>customer-service-port</env-entry-name>
+        <env-entry-value>28084</env-entry-value>
+        <env-entry-type>java.lang.Integer</env-entry-type>
+    </env-entry>
+
+    <env-entry>
+        <env-entry-name>car-service-host</env-entry-name>
+        <env-entry-value>lab1-14</env-entry-value>
+        <env-entry-type>java.lang.String</env-entry-type>
+    </env-entry>
+    <env-entry>
+        <env-entry-name>car-service-port</env-entry-name>
+        <env-entry-value>28081</env-entry-value>
+        <env-entry-type>java.lang.Integer</env-entry-type>
+    </env-entry>
+
 </web-app>

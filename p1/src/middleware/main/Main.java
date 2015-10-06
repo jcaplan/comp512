@@ -11,7 +11,7 @@ public class Main {
     public static void main(String[] args) 
     throws Exception {
     
-        if (args.length != 15 ) {
+        if (args.length != 3 ) {
             System.out.println(
                 "Usage: java Main <server-service-name> <server-service-port> <server-deploy-dir>" +
                 "<client-service-name>  <client-service-host> <client-service-port>");
@@ -38,28 +38,8 @@ public class Main {
                 new File(deployDir + "/" + serviceName).getAbsolutePath());
 
 
-        String clientServiceName = args[3];
-        String clientServiceHost = args[4];
-        int clientPort = Integer.parseInt(args[5]);
-        // ResourceManagerImpl.setCarClient(clientServiceName,clientServiceHost,clientPort);
 
-
-        clientServiceName = args[6];
-        clientServiceHost = args[7];
-        clientPort = Integer.parseInt(args[8]);
-        // ResourceManagerImpl.setRoomClient(clientServiceName,clientServiceHost,clientPort);
-
-        clientServiceName = args[9];
-        clientServiceHost = args[10];
-        clientPort = Integer.parseInt(args[11]);
-        // ResourceManagerImpl.setFlightClient(clientServiceName,clientServiceHost,clientPort);
-
-        clientServiceName = args[12];
-        clientServiceHost = args[13];
-        clientPort = Integer.parseInt(args[14]);
-        // ResourceManagerImpl.setCustomerClient(clientServiceName,clientServiceHost,clientPort);
-        // Client client = ResourceManagerImpl.getNewCustomerClient();
-        
+        tomcat.enableNaming();
         tomcat.start();
         tomcat.getServer().await();
     }

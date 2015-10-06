@@ -8,6 +8,9 @@ package middleware.server;
 import java.util.*;
 
 import javax.jws.WebService;
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 
 import server.*;
 import middleware.client.*;
@@ -98,6 +101,29 @@ public class Middleware implements server.ws.ResourceManager {
 
 	public static MWClient getNewCustomerClient() {
 		return getNewClient(CUSTOMER_CLIENT);
+	}
+
+
+	public Middleware() throws NamingException {
+		Context env = (Context) new InitialContext().lookup("java:comp/env");
+
+		String carServiceHost = (String) env.lookup("car-service-host");
+		Integer carServicePort = (Integer) env.lookup("car-service-port");
+		setCarClient(clientServiceName[CAR_CLIENT], carServiceHost, carServicePort);
+
+		String roomServiceHost = (String) env.lookup("room-service-host");
+		Integer roomServicePort = (Integer) env.lookup("room-service-port");
+		setRoomClient(clientServiceName[ROOM_CLIENT], roomServiceHost, roomServicePort);
+
+		String flightServiceHost = (String) env.lookup("flight-service-host");
+		Integer flightServicePort = (Integer) env.lookup("flight-service-port");
+		setFlightClient(clientServiceName[FLIGHT_CLIENT], flightServiceHost, flightServicePort);
+
+		String customerServiceHost = (String) env.lookup("customer-service-host");
+		Integer customerServicePort = (Integer) env.lookup("customer-service-port");
+		setCustomerClient(clientServiceName[CUSTOMER_CLIENT], customerServiceHost, customerServicePort);
+
+
 	}
 
 	// Flight operations //

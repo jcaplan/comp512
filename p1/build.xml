@@ -1,22 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project basedir="." default="help" name="project">
 
-    <property name="client-service.name" value="rm"/>
-    <property name="client-service.host" value="localhost"/>
-    <property name="client-service.port" value="8080"/>
+    <property name="middleware-service.name" value="rmMW"/>
+    <property name="middleware-service.host" value="localhost"/>
+    <property name="middleware-service.port" value="28080"/>
 
-    <property name="mw-service1.name" value="rm"/>
-    <property name="mw-service1.host" value="localhost"/>
-    <property name="mw-service1.port" value="8080"/>
-    <property name="mw-service2.name" value="rm"/>
-    <property name="mw-service2.host" value="localhost"/>
-    <property name="mw-service2.port" value="8080"/>
-    <property name="mw-service3.name" value="rm"/>
-    <property name="mw-service3.host" value="localhost"/>
-    <property name="mw-service3.port" value="8080"/>
-    <property name="mw-service4.name" value="rm"/>
-    <property name="mw-service4.host" value="localhost"/>
-    <property name="mw-service4.port" value="8080"/>
+
     <property name="server-service.name" value="rm"/>
     <property name="server-service.host" value="localhost"/>
     <property name="server-service.port" value="8080"/>
@@ -176,21 +165,9 @@
                 <pathelement location="${basedir}/build/"/>
             </classpath>
             <jvmarg value="-Djava.security.policy=${basedir}/etc/server.policy"/>
-            <arg value="${server-service.name}"/>
-            <arg value="${server-service.port}"/>
+            <arg value="${middleware-service.name}"/>
+            <arg value="${middleware-service.port}"/>
             <arg value="${basedir}/webapps"/>
-            <arg value="${mw-service1.name}"/>
-            <arg value="${mw-service1.host}"/>
-            <arg value="${mw-service1.port}"/>
-            <arg value="${mw-service2.name}"/>
-            <arg value="${mw-service2.host}"/>
-            <arg value="${mw-service2.port}"/>
-            <arg value="${mw-service3.name}"/>
-            <arg value="${mw-service3.host}"/>
-            <arg value="${mw-service3.port}"/>
-            <arg value="${mw-service4.name}"/>
-            <arg value="${mw-service4.host}"/>
-            <arg value="${mw-service4.port}"/>
         </java>
     </target>
 
@@ -208,7 +185,7 @@
                 keep="true"
                 destdir="${basedir}/build/classes"
                 package="middleware.client"
-                wsdl="http://${client-service.host}:${client-service.port}/${client-service.name}/service?wsdl">
+                wsdl="http://${server-service.host}:${server-service.port}/${server-service.name}/service?wsdl">
         </wsimport>
     </target>
 
@@ -231,7 +208,7 @@
                 keep="true"
                 destdir="${basedir}/build/classes"
                 package="client"
-                wsdl="http://${client-service.host}:${client-service.port}/${client-service.name}/service?wsdl">
+                wsdl="http://${middleware-service.host}:${middleware-service.port}/${middleware-service.name}/service?wsdl">
         </wsimport>
     </target>
 
@@ -251,9 +228,9 @@
                 <path refid="jaxws.classpath"/>
                 <pathelement location="${basedir}/build/classes"/>
             </classpath>
-            <arg value="${client-service.name}"/>
-            <arg value="${client-service.host}"/>
-            <arg value="${client-service.port}"/>
+            <arg value="${middleware-service.name}"/>
+            <arg value="${middleware-service.host}"/>
+            <arg value="${middleware-service.port}"/>
         </java>
     </target>
 

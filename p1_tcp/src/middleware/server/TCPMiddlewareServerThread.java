@@ -49,7 +49,7 @@ public class TCPMiddlewareServerThread extends Thread {
 					break;
 
 				result = command.contains("itinerary") ? reserveItinerary(command)
-						: dispatchCommand(command);
+						: command.contains("deletecustomer") ? deleteCustomer(command) : dispatchCommand(command);
 
 				out.writeObject(result);
 			}
@@ -61,8 +61,10 @@ public class TCPMiddlewareServerThread extends Thread {
 			clientSocket.close();
 		} catch (IOException | ClassNotFoundException e) {
 			e.printStackTrace();
-		}
-	}
+		} catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
 	private void connectRMServers(List<String> rmHostnames,
 			List<Integer> rmPorts) throws IOException {
@@ -92,6 +94,63 @@ public class TCPMiddlewareServerThread extends Thread {
 				this.customerSeverSocket.getInputStream());
 
 	}
+
+    private String deleteCustomer(String command) throws Exception {
+        Trace.info("DEBUG: " + command);
+        Vector arguments;
+        command = command.trim();
+        arguments = parse(command);
+
+        int id = getInt(arguments.elementAt(1));
+        int customer = getInt(arguments.elementAt(2));
+
+        String queryCustomer = String.format("querycustomer,%d,%d", id, customer);
+        String reservations = dispatchCommand(queryCustomer);
+        Trace.info(queryCustomer);
+        Trace.info(reservations);
+
+        if (reservations.isEmpty()) {
+            Trace.info("Customer does not exist");
+            return FAILED;
+        } else {
+            Trace.info("Found customer: " + reservations);
+        }
+
+        StringTokenizer tokenizer = new StringTokenizer(reservations, "\n");
+        while(tokenizer.hasMoreTokens()){
+            //Now parse the bill using spaces
+            String line  = tokenizer.nextToken().trim();
+            String[] tokens = line.split(" ");
+            //Skip lines that are not relevant
+            if(tokens[0].equals("Bill") || tokens.length < 2){
+                continue;
+            }
+
+            //The key will be "type-arg" so split it around the '-' and
+            //then cancel the item
+            for(String t : tokens){
+                System.out.print(t);
+            }
+            System.out.println();
+            String[] keyArray = tokens[1].split("-");
+            System.out.println("DEBUG: " + keyArray[0]);
+            if (keyArray[0].equals("flight")){
+                String cancelReserveFlight = String.format("cancelflight,%d %d,%s", id, customer, Integer.parseInt(keyArray[1]));
+                dispatchCommand(cancelReserveFlight);
+            }
+            else if(keyArray[0].equals("car")) {
+                String cancelReserveCar = String.format("cancelcar,%d,%d,%s", id, customer, keyArray[1]);
+                dispatchCommand(cancelReserveCar);
+            }
+            else if(keyArray[0].equals("room")){
+                String cancelReserveRoom = String.format("cancelroom,%d,%d,%s", id, customer, keyArray[1]);
+                dispatchCommand(cancelReserveRoom);
+            }
+        }
+
+        String deleteCustomer = String.format("deletecustomer,%d,%d", id, customer);
+        return dispatchCommand(deleteCustomer);
+    }
 
 	private String reserveItinerary(String command) {
 		Vector arguments;
@@ -214,7 +273,7 @@ public class TCPMiddlewareServerThread extends Thread {
 					String fNumber = flightNumbers.get(i).toString();
 					int flightNumber = Integer.parseInt(fNumber);
 					String cancelReserveFlight = String.format(
-							"cancelroom, %d, %d, %s", id, customer,
+							"cancelflight, %d, %d, %s", id, customer,
 							flightNumber);
 					dispatchCommand(cancelReserveFlight);
 					Trace.info("removed flight reservation number : "

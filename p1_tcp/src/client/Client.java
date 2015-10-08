@@ -9,9 +9,22 @@ public class Client extends client.TCPClient {
 
 
 
-    public Client(String serviceName, String serviceHost, int servicePort) 
+    public Client(String serviceHost, int servicePort)
     throws Exception {
         super(serviceHost, servicePort);
+    }
+
+    public static void main(String[] args) throws Exception {
+        if (args.length != 2) {
+            System.out.println("Usage: MyClient <service-host> <service-port>");
+            System.exit(-1);
+        }
+
+        String serviceHost = args[0];
+        int servicePort = Integer.parseInt(args[1]);
+        Client myClient = new Client(serviceHost, servicePort);
+
+        myClient.run();
     }
 
 

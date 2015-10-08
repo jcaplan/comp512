@@ -1,12 +1,9 @@
 package middleware.server;
 
-import java.io.BufferedReader;
 import java.io.EOFException;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -54,8 +51,9 @@ public class TCPMiddlewareServerThread extends Thread {
 				if (command.equals("quit"))
 					break;
 
-				result = command.contains("itinerary") ? reserveItinerary(command)
-						: command.contains("deletecustomer") ? deleteCustomer(command) : dispatchCommand(command);
+				result = command.contains("itinerary") ? reserveItinerary(command) :
+						command.contains("deletecustomer") ? deleteCustomer(command) :
+						command.contains("reserve")? reserveOneItem(command) : dispatchCommand(command);
 
 				out.writeObject(result);
 			}
@@ -110,17 +108,10 @@ public class TCPMiddlewareServerThread extends Thread {
         int id = getInt(arguments.elementAt(1));
         int customer = getInt(arguments.elementAt(2));
 
-        String queryCustomer = String.format("querycustomer,%d,%d", id, customer);
-        String reservations = dispatchCommand(queryCustomer);
-        Trace.info(queryCustomer);
-        Trace.info(reservations);
+		String reservations = customerInfo(id, customer);
 
-        if (reservations.isEmpty()) {
-            Trace.info("Customer does not exist");
-            return FAILED;
-        } else {
-            Trace.info("Found customer: " + reservations);
-        }
+        if (reservations.isEmpty())
+			return FAILED;
 
         StringTokenizer tokenizer = new StringTokenizer(reservations, "\n");
         while(tokenizer.hasMoreTokens()){
@@ -164,6 +155,49 @@ public class TCPMiddlewareServerThread extends Thread {
         return dispatchCommand(deleteCustomer);
     }
 
+	private String reserveOneItem(String command) throws Exception {
+		Vector arguments;
+		command = command.trim();
+		arguments = parse(command);
+
+		int id = getInt(arguments.elementAt(1));
+		int customer = getInt(arguments.elementAt(2));
+
+		if (customerInfo(id, customer).isEmpty())
+			return FAILED;
+
+		String reserveStatus = dispatchCommand(command);
+		if (reserveStatus.equals(FAILED))
+			return FAILED;
+
+		String key, extraInfo, priceQuery;
+
+		if (command.contains("car")){
+			extraInfo = getString(arguments.elementAt(3));
+			key = Car.getKey(extraInfo);
+			priceQuery = String.format(
+					"querycarprice, %d, %s", id, extraInfo);
+		}
+		else if (command.contains("room")){
+			extraInfo = getString(arguments.elementAt(3));
+			key = Room.getKey(extraInfo);
+			priceQuery = String.format(
+					"queryroomprice, %d, %s", id, extraInfo);
+		}
+		else{
+			extraInfo = String.valueOf(getInt(arguments.elementAt(3)));
+			key = Flight.getKey(getInt(arguments.elementAt(3)));
+			priceQuery = String.format(
+					"queryflightprice, %d, %s", id, extraInfo);
+		}
+		int price = Integer.parseInt(dispatchCommand(priceQuery));
+
+		String reserveCustomer = String.format(
+				"reservecustomer, %d, %d, %s, %s, %d", id,
+				customer, key, extraInfo, price);
+		return dispatchCommand(reserveCustomer);
+	}
+
 	private String reserveItinerary(String command) {
 		Vector arguments;
 		command = command.trim();
@@ -195,15 +229,8 @@ public class TCPMiddlewareServerThread extends Thread {
 			boolean needRoom = getBoolean(arguments
 					.elementAt(arguments.size() - 1));
 
-			String queryCustomer = String.format("querycustomer, %d, %d", id,
-					customer);
-			String customerInfo = dispatchCommand(queryCustomer);
-			if (customerInfo.isEmpty()) {
-				Trace.info("Custome does not exist");
+			if (customerInfo(id, customer).isEmpty())
 				return FAILED;
-			} else {
-				Trace.info("Found customer: " + customerInfo);
-			}
 
 			boolean carSuccess = false;
 			boolean roomSuccess = false;
@@ -325,7 +352,7 @@ public class TCPMiddlewareServerThread extends Thread {
 					price = Integer.parseInt(dispatchCommand(queryFlightPrice));
 					String reserveCustomer = String.format(
 							"reservecustomer, %d, %d, %s, %s, %d", id,
-							customer, Flight.getKey(flightNumber), location,
+							customer, Flight.getKey(flightNumber), String.valueOf(flightNumber),
 							price);
 					dispatchCommand(reserveCustomer);
 				}
@@ -351,6 +378,13 @@ public class TCPMiddlewareServerThread extends Thread {
 			arguments.add(argument);
 		}
 		return arguments;
+	}
+
+	private String customerInfo(int id, int customer) throws IOException {
+		String queryCustomer = String.format("querycustomer, %d, %d", id,
+				customer);
+		String customerInfo = dispatchCommand(queryCustomer);
+		return customerInfo;
 	}
 
 	private String dispatchCommand(String command) throws IOException {

@@ -12,12 +12,18 @@ public class ClientTestThread extends Thread{
 
 	public void run() {
 		while (true){
-			
+
+			long start = System.currentTimeMillis();
 			if(!client.handleRequest("itinerary,0,"+clientId +",0,0,true,true").equals("true")){
 				break;
-			};
-			
-			
+			}
+
+			long end = System.currentTimeMillis();
+
+			System.out.println("THREAD_" + Thread.currentThread().getId() + "::response time: " + (end - start));
+
+
+
 			try {
 				Thread.sleep(500);
 			} catch (InterruptedException e) {

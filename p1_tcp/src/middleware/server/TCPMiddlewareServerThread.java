@@ -162,7 +162,7 @@ public class TCPMiddlewareServerThread extends Thread {
 		//then if the reservation is successful get the price
 		int price = 0;
 		if(flightStatus){
-			price = getPrice("car",id,flightNumber);
+			price = getPrice("flight",id,flightNumber);
 		} else {
 			return "false";
 		}

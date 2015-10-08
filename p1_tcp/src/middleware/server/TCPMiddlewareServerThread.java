@@ -53,10 +53,22 @@ public class TCPMiddlewareServerThread extends Thread {
 				}
 				if (command.equals("quit"))
 					break;
-
-				result = command.contains("itinerary") ? reserveItinerary(command)
-						: command.contains("deletecustomer") ? deleteCustomer(command) : dispatchCommand(command);
-
+				String lowerCaseCommand = command.toLowerCase();
+				if(lowerCaseCommand.contains("itinerary")){
+					result = reserveItinerary(command);
+				} else if(lowerCaseCommand.contains("deletecustomer")){
+					result = deleteCustomer(command);
+				} else if(lowerCaseCommand.contains("reservecar")){
+					result = reserveCar(command);
+				} else if(lowerCaseCommand.contains("reserveflight")){
+					result = reserveFlight(command);
+				} else if(lowerCaseCommand.contains("reserveroom")){
+					result = reserveRoom(command);
+				}
+				else {
+					result = dispatchCommand(command);
+				}
+				
 				out.writeObject(result);
 			}
 
@@ -71,6 +83,159 @@ public class TCPMiddlewareServerThread extends Thread {
             e.printStackTrace();
         } 
     }
+
+	private String reserveRoom(String command) {
+		Vector arguments = parse(command);
+		int id = 0;
+		int customerId = 0;
+		String location = "";
+		try {
+			id = getInt(arguments.elementAt(1));
+			customerId = getInt(arguments.elementAt(2));
+			location = getString(arguments.elementAt(3));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		Trace.info("RM::reserveRoom(" + id + ", " + customerId + "," + location
+				+ ") called.");
+		//Check that customer exists
+		String custInfo = getCustomerInfo(id,customerId);
+		//then reserve the car
+		if(custInfo.isEmpty()){
+			Trace.info("customer does not exist" + custInfo);
+			return "false";
+		} else {
+			Trace.info("found customer");
+		}
+		
+		//Reserve the car -> dispatch original command
+		Boolean roomStatus = Boolean.parseBoolean(dispatchCommand(command));
+		
+
+		//then if the reservation is successful get the price
+		int price = 0;
+		if(roomStatus){
+			price = getPrice("room",id,location);
+		} else {
+			return "false";
+		}
+		
+		//then update the client 
+		return updateCustomerInfo(id,customerId,Room.getKey(location),location,price);
+		
+		
+		
+	}
+
+
+
+	private String reserveFlight(String command) {
+		Vector arguments = parse(command);
+		int id = 0;
+		int customerId = 0;
+		String flightNumber = "";
+		try {
+			id = getInt(arguments.elementAt(1));
+			customerId = getInt(arguments.elementAt(2));
+			flightNumber = getString(arguments.elementAt(3));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		Trace.info("RM::reserveFlight(" + id + ", " + customerId + "," 
+		+ flightNumber + ") called.");
+		//Check that customer exists
+		String custInfo = getCustomerInfo(id,customerId);
+		//then reserve the car
+		if(custInfo.isEmpty()){
+			Trace.info("customer does not exist" + custInfo);
+			return "false";
+		} else {
+			Trace.info("found customer");
+		}
+		
+		//Reserve the car -> dispatch original command
+		Boolean flightStatus = Boolean.parseBoolean(dispatchCommand(command));
+		
+
+		//then if the reservation is successful get the price
+		int price = 0;
+		if(flightStatus){
+			price = getPrice("car",id,flightNumber);
+		} else {
+			return "false";
+		}
+		
+		//then update the client 
+		return updateCustomerInfo(id,customerId,
+				Flight.getKey(Integer.parseInt(flightNumber)),flightNumber,price);
+		
+		
+	}
+
+	private String reserveCar(String command) {
+		Vector arguments = parse(command);
+		int id = 0;
+		int customerId = 0;
+		String location = "";
+		try {
+			id = getInt(arguments.elementAt(1));
+			customerId = getInt(arguments.elementAt(2));
+			location = getString(arguments.elementAt(3));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		Trace.info("RM::reserveCar(" + id + ", " + customerId + "," + location
+				+ ") called.");
+		//Check that customer exists
+		String custInfo = getCustomerInfo(id,customerId);
+		//then reserve the car
+		if(custInfo.isEmpty()){
+			Trace.info("customer does not exist" + custInfo);
+			return "false";
+		} else {
+			Trace.info("found customer");
+		}
+		
+		//Reserve the car -> dispatch original command
+		Boolean carStatus = Boolean.parseBoolean(dispatchCommand(command));
+		
+
+		//then if the reservation is successful get the price
+		int price = 0;
+		if(carStatus){
+			price = getPrice("car",id,location);
+		} else {
+			return "false";
+		}
+		
+		//then update the client 
+		return updateCustomerInfo(id,customerId,Car.getKey(location),location,price);
+		
+		
+		
+		
+	}
+	
+	
+	private String getCustomerInfo(int id, int customer)  {
+		return dispatchCommand("queryCustomer," + id + "," + customer);
+	}
+	
+	
+	private String updateCustomerInfo(int id, int customerId, String key,
+			String location, int price) {
+		String command = "reservecustomer," + id + "," + customerId + "," + key +
+				"," + location + "," + price;
+		return dispatchCommand(command);
+		
+	}
+
+	private int getPrice(String itemType, int id, String location) {
+		return Integer.parseInt(dispatchCommand("query" + itemType + "price," + id + "," + location));
+	}
 
 	private void connectRMServers(List<String> rmHostnames,
 			List<Integer> rmPorts) throws IOException {
@@ -353,32 +518,31 @@ public class TCPMiddlewareServerThread extends Thread {
 		return arguments;
 	}
 
-	private String dispatchCommand(String command) throws IOException {
+	private String dispatchCommand(String command) {
 		String result = null;
 		ObjectOutputStream out = null;
 		ObjectInputStream in = null;
-
-		String commandInLowerCase = command.toLowerCase();
-		// Check customer first!
-		if (commandInLowerCase.contains("customer")) {
-			out = this.customerOut;
-			in = this.customerIn;
-		} else if (commandInLowerCase.contains("car")) {
-			out = this.carOut;
-			in = this.carIn;
-		}
-
-		else if (commandInLowerCase.contains("room")) {
-			out = this.roomOut;
-			in = this.roomIn;
-		} else if (commandInLowerCase.contains("flight")) {
-			out = this.flightOut;
-			in = this.flightIn;
-		}
-
-		out.writeObject(command);
-
 		try {
+			String commandInLowerCase = command.toLowerCase();
+			// Check customer first!
+			if (commandInLowerCase.contains("customer")) {
+				out = this.customerOut;
+				in = this.customerIn;
+			} else if (commandInLowerCase.contains("car")) {
+				out = this.carOut;
+				in = this.carIn;
+			}
+	
+			else if (commandInLowerCase.contains("room")) {
+				out = this.roomOut;
+				in = this.roomIn;
+			} else if (commandInLowerCase.contains("flight")) {
+				out = this.flightOut;
+				in = this.flightIn;
+			}
+	
+			out.writeObject(command);
+
 			result = (String) in.readObject();
 		} catch (IOException | ClassNotFoundException e) {
 			e.printStackTrace();

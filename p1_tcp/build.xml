@@ -4,6 +4,7 @@
     <property name="client-service.name" value="rm"/>
     <property name="client-service.host" value="localhost"/>
     <property name="client-service.port" value="8080"/>
+    <property name="client-main" value="Client"/>
 
     <property name="mw-service1.name" value="rm"/>
     <property name="mw-service1.host" value="localhost"/>
@@ -109,7 +110,7 @@
     </target>
 
     <target name="client" depends="build-client">
-        <java classname="client.Test01">
+        <java classname="client.${client-main}">
             <classpath>
                 <path refid="classpath"/>
                 <pathelement location="${basedir}/build"/>

@@ -110,12 +110,12 @@
     </target>
 
     <target name="client" depends="build-client">
+
         <java classname="client.${client-main}">
             <classpath>
                 <path refid="classpath"/>
                 <pathelement location="${basedir}/build"/>
             </classpath>
-            <arg value="${client-service.name}"/>
             <arg value="${client-service.host}"/>
             <arg value="${client-service.port}"/>
         </java>

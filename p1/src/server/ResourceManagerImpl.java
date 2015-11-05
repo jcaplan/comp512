@@ -5,9 +5,12 @@
 
 package server;
 
-import java.util.*;
+import java.util.Calendar;
+import java.util.Vector;
 
 import javax.jws.WebService;
+
+import server.tm.TMServer;
 
 @WebService(endpointInterface = "server.ws.ResourceManager")
 public class ResourceManagerImpl implements server.ws.ResourceManager {
@@ -17,6 +20,52 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 	Object syncLock = new Object();
 	// Basic operations on RMItem //
 
+	
+	public boolean abort(int id){
+		synchronized(m_itemHT){
+			return TMServer.getInstance().abortTxn(id, m_itemHT);
+		}
+	}
+	
+	public boolean start(int id){
+		synchronized(m_itemHT){
+			return TMServer.getInstance().start(id);
+		}
+	}
+	
+	public boolean commit(int id){
+		synchronized(m_itemHT){
+			return TMServer.getInstance().commitTxn(id);
+		}
+	}
+	
+	private void setPrice(int id, ReservableItem item, int price){
+		//Checks that the transaction ID is valid...
+		if(TMServer.getInstance().writeData(id, item.getKey(), item)){
+			item.setPrice(price);
+		}
+	}
+	
+	private void setCount(int id, ReservableItem item, int count){
+		if(TMServer.getInstance().writeData(id, item.getKey(), item)){
+			item.setCount(count);
+		}
+	}
+	
+	private void setReserved(int id, ReservableItem item, int reserved){
+		if(TMServer.getInstance().writeData(id, item.getKey(), item)){
+			item.setReserved(reserved);
+		}
+	}
+	
+	private void custReserve(int id, Customer cust, String key, String location, int  price){
+		ReservedItem item = cust.getReservedItem(key);
+		
+		if(TMServer.getInstance().writeData(id, cust.getKey(), item)){
+			cust.reserve(key, location, price);
+		}
+	}
+	
 	// Read a data item.
 	private RMItem readData(int id, String key) {
 		synchronized (m_itemHT) {
@@ -26,15 +75,24 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 
 	// Write a data item.
 	private void writeData(int id, String key, RMItem value) {
+		boolean result;
 		synchronized (m_itemHT) {
-			m_itemHT.put(key, value);
+			TMServer tm = TMServer.getInstance();
+			if(tm.writeData(id,key,(RMItem)m_itemHT.get(key))){
+				m_itemHT.put(key, value);
+			}
 		}
 	}
 
 	// Remove the item out of storage.
 	protected RMItem removeData(int id, String key) {
 		synchronized (m_itemHT) {
-			return (RMItem) m_itemHT.remove(key);
+			TMServer tm = TMServer.getInstance();
+			if(tm.removeData(id,key, (RMItem) m_itemHT.get(key))){
+				return (RMItem) m_itemHT.remove(key);
+			} else {
+				return null;
+			}
 		}
 	}
 
@@ -111,8 +169,8 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 			} else {
 	
 				// Decrease the number of available items in the storage.
-				item.setCount(item.getCount() - 1);
-				item.setReserved(item.getReserved() + 1);
+				setCount(id,item,item.getCount() - 1);
+				setReserved(id,item,item.getReserved() + 1);
 	
 				Trace.warn("RM::reserveItem(" + id + ", " + customerId + ", " + key
 						+ ", " + location + ") OK.");
@@ -140,8 +198,8 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 			} else {
 	
 				// Increase the number of available items in the storage.
-				item.setCount(item.getCount() + 1);
-				item.setReserved(item.getReserved() - 1);
+				setCount(id,item,item.getCount() + 1);
+				setReserved(id,item,item.getReserved() - 1);
 	
 				Trace.warn("RM::cancelReserveItem(" + id + ", " + customerId + ", "
 						+ key + ", " + location + ") OK.");
@@ -164,7 +222,7 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 	
 			else {
 				// Do reservation.
-				cust.reserve(key, location, price);
+				custReserve(id,cust, key,location, price);
 				writeData(id, cust.getKey(), cust);
 	
 				Trace.warn("RM::reserveItem(" + id + ", " + customerId + ", " + key
@@ -203,9 +261,9 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 						+ flightPrice + ", " + numSeats + ") OK.");
 			} else {
 				// Add seats to existing flight and update the price.
-				curObj.setCount(curObj.getCount() + numSeats);
+				setCount(id,curObj,curObj.getCount() + numSeats);
 				if (flightPrice > 0) {
-					curObj.setPrice(flightPrice);
+					setPrice(id,curObj,flightPrice);
 				}
 				writeData(id, curObj.getKey(), curObj);
 				Trace.info("RM::addFlight(" + id + ", " + flightNumber + ", $"
@@ -276,9 +334,9 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 						+ ", $" + carPrice + ") OK.");
 			} else {
 				// Add count to existing object and update price.
-				curObj.setCount(curObj.getCount() + numCars);
+				setCount(id,curObj,curObj.getCount() + numCars);
 				if (carPrice > 0) {
-					curObj.setPrice(carPrice);
+					setPrice(id,curObj,carPrice);
 				}
 				writeData(id, curObj.getKey(), curObj);
 				Trace.info("RM::addCars(" + id + ", " + location + ", " + numCars
@@ -326,9 +384,9 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 						+ ", $" + roomPrice + ") OK.");
 			} else {
 				// Add count to existing object and update price.
-				curObj.setCount(curObj.getCount() + numRooms);
+				setCount(id,curObj,curObj.getCount() + numRooms);
 				if (roomPrice > 0) {
-					curObj.setPrice(roomPrice);
+					setPrice(id,curObj,roomPrice);
 				}
 				writeData(id, curObj.getKey(), curObj);
 				Trace.info("RM::addRooms(" + id + ", " + location + ", " + numRooms
@@ -409,7 +467,18 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 	// Returns null if the customer doesn't exist.
 	// Returns empty RMHashtable if customer exists but has no reservations.
 	public String getCustomerReservations(int id, int customerId) {
-		return "";
+		Trace.info("RM::getCustomerReservations(" + id + ", " + customerId
+				+ ") called.");
+		synchronized(syncLock){
+			Customer cust = (Customer) readData(id, Customer.getKey(customerId));
+			if (cust == null) {
+				Trace.info("RM::getCustomerReservations(" + id + ", " + customerId
+						+ ") failed: customer doesn't exist.");
+				return null;
+			} else {
+				return cust.printBill();
+			}
+		}
 	}
 
 	// Return a bill.

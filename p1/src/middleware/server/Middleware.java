@@ -42,7 +42,14 @@ public class Middleware implements server.ws.ResourceManager {
 		clientServiceHost[pclientType] = pclientServiceHost;
 		clientPort[pclientType] = pclientPort;
 	}
+	
 
+	MWClient carClient;
+	MWClient flightClient;
+	MWClient roomClient;
+	MWClient custClient;
+	
+	
 	public static MWClient getNewClient(int clientType) {
 		MWClient client = null;
 		try {
@@ -123,6 +130,10 @@ public class Middleware implements server.ws.ResourceManager {
 		Integer customerServicePort = (Integer) env.lookup("customer-service-port");
 		setCustomerClient(clientServiceName[CUSTOMER_CLIENT], customerServiceHost, customerServicePort);
 
+		carClient = getNewCarClient();
+		roomClient = getNewRoomClient();
+		flightClient = getNewFlightClient();
+		custClient = getNewCustomerClient();
 
 	}
 
@@ -136,8 +147,7 @@ public class Middleware implements server.ws.ResourceManager {
 			int flightPrice) {
 		Trace.info("RM::addFlight(" + id + ", " + flightNumber + ", $"
 				+ flightPrice + ", " + numSeats + ") called.");
-		MWClient client = getNewFlightClient();
-		boolean result = client.addFlight(id, flightNumber, numSeats,
+		boolean result = flightClient.addFlight(id, flightNumber, numSeats,
 				flightPrice);
 		return result;
 
@@ -146,24 +156,21 @@ public class Middleware implements server.ws.ResourceManager {
 	@Override
 	public boolean deleteFlight(int id, int flightNumber) {
 		Trace.info("RM::deleteFlight(" + id + ", " + flightNumber + ") called.");
-		MWClient client = getNewFlightClient();
-		return client.deleteFlight(id, flightNumber);
+		return flightClient.deleteFlight(id, flightNumber);
 	}
 
 	// Returns the number of empty seats on this flight.
 	@Override
 	public int queryFlight(int id, int flightNumber) {
 		Trace.info("RM::queryFlight(" + id + ", " + flightNumber + ") called.");
-		MWClient client = getNewFlightClient();
-		return client.queryFlight(id, flightNumber);
+		return flightClient.queryFlight(id, flightNumber);
 	}
 
 	// Returns price of this flight.
 	public int queryFlightPrice(int id, int flightNumber) {
 		Trace.info("RM::queryFlightPrice(" + id + ", " + flightNumber
 				+ ") called.");
-		MWClient client = getNewFlightClient();
-		return client.queryFlightPrice(id, flightNumber);
+		return flightClient.queryFlightPrice(id, flightNumber);
 	}
 
 	/*
@@ -200,8 +207,7 @@ public class Middleware implements server.ws.ResourceManager {
 	public boolean addCars(int id, String location, int numCars, int carPrice) {
 		Trace.info("RM::addCars(" + id + ", " + location + ", " + numCars
 				+ ", $" + carPrice + ") called.");
-		MWClient client = getNewCarClient();
-		boolean result = client.addCars(id, location, numCars, carPrice);
+		boolean result = carClient.addCars(id, location, numCars, carPrice);
 		Trace.info("RM::addCars(" + id + ", " + location + ", " + numCars
 				+ ", $" + carPrice + ") OK.");
 		return result;
@@ -211,8 +217,7 @@ public class Middleware implements server.ws.ResourceManager {
 	@Override
 	public boolean deleteCars(int id, String location) {
 		Trace.info("RM::deleteCars(" + id + ", " + location + ") called.");
-		MWClient client = getNewCarClient();
-		boolean result = client.deleteCars(id, location);
+		boolean result = carClient.deleteCars(id, location);
 		Trace.info("RM::addCars(" + id + ", " + location + ") OK.");
 		return result;
 	}
@@ -221,8 +226,7 @@ public class Middleware implements server.ws.ResourceManager {
 	@Override
 	public int queryCars(int id, String location) {
 		Trace.info("RM::queryCars(" + id + ", " + location + ") called.");
-		MWClient client = getNewCarClient();
-		int result = client.queryCars(id, location);
+		int result = carClient.queryCars(id, location);
 		Trace.info("RM::queryCars(" + id + ", " + location + ") OK.");
 		return result;
 	}
@@ -231,8 +235,7 @@ public class Middleware implements server.ws.ResourceManager {
 	@Override
 	public int queryCarsPrice(int id, String location) {
 		Trace.info("RM::queryCarsPrice(" + id + ", " + location + ") called.");
-		MWClient client = getNewCarClient();
-		int result = client.queryCarsPrice(id, location);
+		int result = carClient.queryCarsPrice(id, location);
 		Trace.info("RM::queryCarsPrice(" + id + ", " + location + ") OK.");
 		return result;
 	}
@@ -246,8 +249,7 @@ public class Middleware implements server.ws.ResourceManager {
 	public boolean addRooms(int id, String location, int numRooms, int roomPrice) {
 		Trace.info("RM::addRooms(" + id + ", " + location + ", " + numRooms
 				+ ", $" + roomPrice + ") called.");
-		MWClient client = getNewRoomClient();
-		boolean result = client.addRooms(id, location, numRooms, roomPrice);
+		boolean result = roomClient.addRooms(id, location, numRooms, roomPrice);
 		Trace.info("RM::addRooms(" + id + ", " + location + ", " + numRooms
 				+ ", $" + roomPrice + ") OK.");
 		return result;
@@ -257,8 +259,7 @@ public class Middleware implements server.ws.ResourceManager {
 	@Override
 	public boolean deleteRooms(int id, String location) {
 		Trace.info("RM::deleteRooms(" + id + ", " + location + ") called.");
-		MWClient client = getNewRoomClient();
-		boolean result = client.deleteRooms(id, location);
+		boolean result = roomClient.deleteRooms(id, location);
 		Trace.info("RM::deleteRooms(" + id + ", " + location + ") OK.");
 		return result;
 	}
@@ -267,8 +268,7 @@ public class Middleware implements server.ws.ResourceManager {
 	@Override
 	public int queryRooms(int id, String location) {
 		Trace.info("RM::queryRooms(" + id + ", " + location + ") called.");
-		MWClient client = getNewRoomClient();
-		int result = client.queryRooms(id, location);
+		int result = roomClient.queryRooms(id, location);
 		Trace.info("RM::queryRooms(" + id + ", " + location + ") OK.");
 		return result;
 	}
@@ -277,8 +277,7 @@ public class Middleware implements server.ws.ResourceManager {
 	@Override
 	public int queryRoomsPrice(int id, String location) {
 		Trace.info("RM::queryRoomsPrice(" + id + ", " + location + ") called.");
-		MWClient client = getNewRoomClient();
-		int result = client.queryRoomsPrice(id, location);
+		int result = roomClient.queryRoomsPrice(id, location);
 		Trace.info("RM::queryRoomsPrice(" + id + ", " + location + ") OK.");
 		return result;
 	}
@@ -289,8 +288,7 @@ public class Middleware implements server.ws.ResourceManager {
 	public int newCustomer(int id) {
 		Trace.info("INFO: RM::newCustomer(" + id + ") called.");
 		// Generate a globally unique Id for the new customer.
-		MWClient client = getNewCustomerClient();
-		int customerId = client.newCustomer(id);
+		int customerId = custClient.newCustomer(id);
 		Trace.info("RM::newCustomer(" + id + ") OK: " + customerId);
 		return customerId;
 
@@ -301,8 +299,7 @@ public class Middleware implements server.ws.ResourceManager {
 	public boolean newCustomerId(int id, int customerId) {
 		Trace.info("INFO: RM::newCustomer(" + id + ", " + customerId
 				+ ") called.");
-		MWClient client = getNewCustomerClient();
-		boolean result = client.newCustomerId(id, customerId);
+		boolean result = custClient.newCustomerId(id, customerId);
 		if (result) {
 			Trace.info("INFO: RM::newCustomer(" + id + ", " + customerId
 					+ ") OK.");
@@ -328,7 +325,7 @@ public class Middleware implements server.ws.ResourceManager {
 			}
 
 			//Get the bill for the customer
-			String reservations = queryCustomerInfo(id, customerId);
+			String reservations = customerInfo;
 			System.out.println(reservations);
 			
 			//Now parse the bill
@@ -355,23 +352,19 @@ public class Middleware implements server.ws.ResourceManager {
 				MWClient client;
 				if (keyArray[0].equals("flight")){
 					for(int i = 0; i < numItems; i++){
-						client = getNewFlightClient();
-						client.cancelReserveFlight(id, customerId, Integer.parseInt(keyArray[1]));
+						flightClient.cancelReserveFlight(id, customerId, Integer.parseInt(keyArray[1]));
 					}
 				} else if(keyArray[0].equals("car")) {
 					for(int i = 0; i < numItems; i++){
-						client = getNewCarClient();
-						client.cancelReserveCar(id,customerId,keyArray[1]);
+						carClient.cancelReserveCar(id,customerId,keyArray[1]);
 					}
 				} else if(keyArray[0].equals("room")){
 					for(int i = 0; i < numItems; i++){
-						client = getNewRoomClient();
-						client.cancelReserveRoom(id,customerId,keyArray[1]);
+						roomClient.cancelReserveRoom(id,customerId,keyArray[1]);
 					}
 				}
 			}
 				
-			MWClient custClient = getNewCustomerClient();
 			return custClient.deleteCustomer(id,customerId);
 			
 		}
@@ -388,8 +381,7 @@ public class Middleware implements server.ws.ResourceManager {
 	public String queryCustomerInfo(int id, int customerId) {
 		Trace.info("RM::queryCustomerInfo(" + id + ", " + customerId
 				+ ") called.");
-		MWClient client = getNewCustomerClient();
-		String result = client.queryCustomerInfo(id, customerId);
+		String result = custClient.queryCustomerInfo(id, customerId);
 		Trace.info("RM::queryCustomerInfo(" + id + ", " + customerId + ") OK.");
 		return result;
 	}
@@ -414,7 +406,6 @@ public class Middleware implements server.ws.ResourceManager {
 	private boolean reserveFlightNoCustCheck(int id, int customerId,
 			int flightNumber) {
 		// Try to reserver a flight with the flight RM
-		MWClient flightClient = getNewFlightClient();
 		int price = 0;
 		boolean flightStatus = flightClient.reserveFlight(id, customerId,flightNumber);
 		if (flightStatus) {
@@ -423,8 +414,7 @@ public class Middleware implements server.ws.ResourceManager {
 			return false;
 		}
 		// Add reservation to customer
-		MWClient client = getNewCustomerClient();
-		client.reserveCustomer(id, customerId, Flight.getKey(flightNumber),
+		custClient.reserveCustomer(id, customerId, Flight.getKey(flightNumber),
 				String.valueOf(flightNumber), price);
 
 		return true;
@@ -450,7 +440,6 @@ public class Middleware implements server.ws.ResourceManager {
 	private boolean reserveCarNoCustCheck(int id, int customerId,
 			String location) {
 		// Try to reserver a car with the car RM
-		MWClient carClient = getNewCarClient();
 		int price = 0;
 		boolean carStatus = carClient.reserveCar(id, customerId, location);
 		if (carStatus) {
@@ -459,8 +448,7 @@ public class Middleware implements server.ws.ResourceManager {
 			return false;
 		}
 		// Add reservation to customer
-		MWClient client = getNewCustomerClient();
-		client.reserveCustomer(id, customerId, Car.getKey(location), location,
+		custClient.reserveCustomer(id, customerId, Car.getKey(location), location,
 				price);
 
 		return true;
@@ -485,7 +473,6 @@ public class Middleware implements server.ws.ResourceManager {
 
 	private boolean reserveRoomNoCust(int id, int customerId, String location) {
 		// Try to reserver a car with the car RM
-		MWClient roomClient = getNewRoomClient();
 		int price = 0;
 		boolean roomStatus = roomClient.reserveRoom(id, customerId, location);
 		if (roomStatus) {
@@ -494,8 +481,7 @@ public class Middleware implements server.ws.ResourceManager {
 			return false;
 		}
 		// Add reservation to customer
-		MWClient client = getNewCustomerClient();
-		client.reserveCustomer(id, customerId, Room.getKey(location), location,
+		custClient.reserveCustomer(id, customerId, Room.getKey(location), location,
 				price);
 
 		return true;
@@ -527,9 +513,7 @@ public class Middleware implements server.ws.ResourceManager {
 		boolean flightSuccess = false;
 		int numFlightsReserved = 0;
 		
-		MWClient carClient, roomClient = null, flightClient = null;
-		// First try the car
-		carClient = getNewCarClient(); 
+			// First try the car
 		
 		if(car){
 			carSuccess = carClient.reserveCar(id, customerId, location);
@@ -541,7 +525,6 @@ public class Middleware implements server.ws.ResourceManager {
 
 		// Don't bother with room if the car didn't succeed
 		if (room && (!car || carSuccess)) {
-			roomClient = getNewRoomClient();
 			roomSuccess = roomClient.reserveRoom(id, customerId, location);
 		}
 		if (roomSuccess) {
@@ -551,7 +534,6 @@ public class Middleware implements server.ws.ResourceManager {
 		//Did we need a room? If so it has to succeed.
 		//Did we need a car? if so it has to succeed 
 		if ((!room || (room && roomSuccess)) && (!car || (car && carSuccess))) {
-			flightClient = getNewFlightClient();
 			for (Object fNumber : flightNumbers) {
 				int flightNumber = Integer.parseInt(fNumber.toString());
 				flightSuccess = flightClient.reserveFlight(id, customerId, flightNumber);
@@ -594,8 +576,7 @@ public class Middleware implements server.ws.ResourceManager {
 		//if none of them failed
 		if (!(carFailed || roomFailed || flightFailed)) {
 			int price = 0;
-			MWClient custClient = getNewCustomerClient();
-
+		
 			if(car){
 				price = carClient.queryCarsPrice(id, location);
 				custClient.reserveCustomer(id, customerId, Car.getKey(location),

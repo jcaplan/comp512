@@ -1,8 +1,8 @@
 #!/bin/bash
 
 
-ant build-middleware-client -Dserver-service.name=rmCar -Dserver-service.port=28081 \
--Dserver-service.host=lab1-14
+ant build-middleware-client -Dserver-service.name=rmCar -Dserver-service.port=28081 
+# -Dserver-service.host=lab1-14
 # ant build-middleware-client -Dclient-service.name=rmRoom -Dclient-service.port=18082
 # ant build-middleware-client -Dclient-service.name=rmFlight -Dclient-service.port=18083 
 # ant build-middleware-client -Dclient-service.name=rmCustomer -Dclient-service.port=18084 

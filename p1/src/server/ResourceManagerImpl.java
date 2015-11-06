@@ -20,29 +20,36 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 	Object syncLock = new Object();
 	// Basic operations on RMItem //
 
-	
+	@Override
 	public boolean abort(int id){
 		synchronized(m_itemHT){
 			return TMServer.getInstance().abortTxn(id, m_itemHT);
 		}
 	}
 	
+	@Override
 	public boolean start(int id){
 		synchronized(m_itemHT){
 			return TMServer.getInstance().start(id);
 		}
 	}
 	
+	@Override
 	public boolean commit(int id){
 		synchronized(m_itemHT){
 			return TMServer.getInstance().commitTxn(id);
 		}
 	}
 	
+	@Override
 	public boolean shutdown(){
 		//TODO
 		return false;
 	}
+	
+
+
+
 	
 	private void setPrice(int id, ReservableItem item, int price){
 		//Checks that the transaction ID is valid...
@@ -551,5 +558,6 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 			Vector flightNumbers, String location, boolean car, boolean room) {
 		return false;
 	}
+
 
 }

@@ -35,12 +35,12 @@ class MyThread extends Thread {
 	        this.sleep (4000);
 	    }
 	    catch (InterruptedException e) { }
-
+	    
 	    try {
-		lm.Lock (1, "b", LockManager.WRITE);
+		System.out.println(lm.Lock (1, "b", LockManager.WRITE));
 	    }
 	    catch (DeadlockException e) {
-	        System.out.println ("Deadlock.... ");
+	        System.out.println ("1 Deadlock.... ");
 	    }
 	    
 	    lm.UnlockAll (1);
@@ -62,7 +62,7 @@ class MyThread extends Thread {
 		lm.Lock (2, "a", LockManager.WRITE);
 	    }
 	    catch (DeadlockException e) { 
-	        System.out.println ("Deadlock.... ");
+	        System.out.println ("2 Deadlock.... ");
 	    }
 	    
 	    lm.UnlockAll (2);

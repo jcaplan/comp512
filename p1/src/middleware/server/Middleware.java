@@ -16,8 +16,9 @@ import server.*;
 import middleware.client.*;
 import middleware.tm.TMClient;
 
-@WebService(endpointInterface = "server.ws.ResourceManager")
-public class Middleware implements server.ws.ResourceManager {
+
+@WebService(endpointInterface = "middleware.server.ResourceManager")
+public class Middleware implements ResourceManager {
 
 	protected RMHashtable m_itemHT = new RMHashtable();
 
@@ -171,8 +172,14 @@ public class Middleware implements server.ws.ResourceManager {
 	
 	
 	
-	
-	
+
+	@Override
+	public boolean shutdown() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+
 	
 	
 	

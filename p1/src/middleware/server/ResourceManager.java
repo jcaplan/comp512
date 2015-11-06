@@ -14,7 +14,7 @@
  * has succeeded.
  */
 
-package server.ws;
+package middleware.server;
 
 import java.util.*;
 
@@ -159,8 +159,9 @@ public interface ResourceManager {
     @WebMethod
 	boolean cancelReserveRoom(int id, int customerId, String location);
 
+    
     @WebMethod
-    public boolean start(int id); //client to MW
+    public int start(); //MW to RM
     
     @WebMethod
     public boolean commit(int id);

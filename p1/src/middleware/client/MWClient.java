@@ -15,6 +15,49 @@ public class MWClient extends WSClient {
 		super(serviceName, serviceHost, servicePort);
 	}
 
+	
+	public boolean abort(int id){
+		boolean result = false;
+		try {
+			result = proxy.abort(id);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
+	
+	public boolean start(int id){
+		boolean result = false;
+		try {
+			result = proxy.start(id);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
+	
+	public boolean commit(int id){
+		boolean result = false;
+		try {
+			result = proxy.commit(id);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
+	
+	public boolean shutdown(){
+		boolean result = false;
+		try {
+			result = proxy.shutdown();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
+	
+	
+	
 	public int run(int id) {
 		int customerID = 0;
 		try {

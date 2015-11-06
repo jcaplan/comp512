@@ -3,6 +3,7 @@ package middleware.client;
 import java.util.*;
 import java.io.*;
 
+import middleware.tm.TMClient;
 import server.Car;
 import server.Flight;
 import server.RMHashtable;

@@ -26,11 +26,11 @@ public class Middleware implements ResourceManager {
 	 * Set up the client stuff
 	 */
 
-	private static final int NUM_CLIENTS = 4;
-	private static final int FLIGHT_CLIENT = 2;
-	private static final int ROOM_CLIENT = 1;
-	private static final int CAR_CLIENT = 0;
-	private static final int CUSTOMER_CLIENT = 3;
+	public static final int NUM_CLIENTS = 4;
+	public static final int FLIGHT_CLIENT = 2;
+	public static final int ROOM_CLIENT = 1;
+	public static final int CAR_CLIENT = 0;
+	public static final int CUSTOMER_CLIENT = 3;
 
 	static volatile String[] clientServiceName = { "rmCar", "rmRoom",
 			"rmFlight", "rmCustomer" };

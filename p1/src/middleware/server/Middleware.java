@@ -14,6 +14,7 @@ import javax.naming.NamingException;
 
 import server.*;
 import middleware.client.*;
+import middleware.tm.TMClient;
 
 @WebService(endpointInterface = "server.ws.ResourceManager")
 public class Middleware implements server.ws.ResourceManager {
@@ -134,9 +135,53 @@ public class Middleware implements server.ws.ResourceManager {
 		roomClient = getNewRoomClient();
 		flightClient = getNewFlightClient();
 		custClient = getNewCustomerClient();
+		
+		TMClient.getInstance().setClients(carClient, flightClient, 
+				roomClient, custClient);
+		
 
 	}
 
+	
+	
+	
+	
+	public int start(){
+		
+		
+		return 0;
+	}
+	
+	public boolean commit(int id){
+		
+		
+		return false;
+	}
+	
+	public boolean abort(int id){
+		
+		return false;
+	}
+	
+	public boolean shutDown(){
+		
+		
+		return false;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	// Flight operations //
 
 	// Create a new flight, or add seats to existing flight.

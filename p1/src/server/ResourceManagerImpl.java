@@ -39,6 +39,11 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 		}
 	}
 	
+	public boolean shutdown(){
+		//TODO
+		return false;
+	}
+	
 	private void setPrice(int id, ReservableItem item, int price){
 		//Checks that the transaction ID is valid...
 		if(TMServer.getInstance().writeData(id, item.getKey(), item)){

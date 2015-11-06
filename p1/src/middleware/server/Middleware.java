@@ -12,6 +12,8 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
+import lockmanager.DeadlockException;
+import lockmanager.LockManager;
 import server.*;
 import middleware.client.*;
 import middleware.tm.TMClient;
@@ -31,6 +33,8 @@ public class Middleware implements ResourceManager {
 	public static final int ROOM_CLIENT = 1;
 	public static final int CAR_CLIENT = 0;
 	public static final int CUSTOMER_CLIENT = 3;
+
+	private LockManager lockManager;
 
 	static volatile String[] clientServiceName = { "rmCar", "rmRoom",
 			"rmFlight", "rmCustomer" };
@@ -52,11 +56,11 @@ public class Middleware implements ResourceManager {
 	MWClient custClient;
 	
 	
-	public static MWClient getNewClient(int clientType) {
+	public  MWClient getNewClient(int clientType) {
 		MWClient client = null;
 		try {
 			client = new MWClient(clientServiceName[clientType],
-					clientServiceHost[clientType], clientPort[clientType]);
+					clientServiceHost[clientType], clientPort[clientType], lockManager);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -96,24 +100,26 @@ public class Middleware implements ResourceManager {
 				CUSTOMER_CLIENT);
 	}
 
-	private static MWClient getNewFlightClient() {
+	private MWClient getNewFlightClient() {
 		return getNewClient(FLIGHT_CLIENT);
 	}
 
-	private static MWClient getNewRoomClient() {
+	private MWClient getNewRoomClient() {
 		return getNewClient(ROOM_CLIENT);
 	}
 
-	private static MWClient getNewCarClient() {
+	private MWClient getNewCarClient() {
 		return getNewClient(CAR_CLIENT);
 	}
 
-	public static MWClient getNewCustomerClient() {
+	public MWClient getNewCustomerClient() {
 		return getNewClient(CUSTOMER_CLIENT);
 	}
 
 
 	public Middleware() throws NamingException {
+		this.lockManager = new LockManager();
+
 		Context env = (Context) new InitialContext().lookup("java:comp/env");
 
 		String carServiceHost = (String) env.lookup("car-service-host");
@@ -196,33 +202,58 @@ public class Middleware implements ResourceManager {
 	// its current price.
 	@Override
 	public boolean addFlight(int id, int flightNumber, int numSeats,
-			int flightPrice) {
+			int flightPrice) throws DeadlockException {
 		Trace.info("RM::addFlight(" + id + ", " + flightNumber + ", $"
 				+ flightPrice + ", " + numSeats + ") called.");
-		boolean result = flightClient.addFlight(id, flightNumber, numSeats,
-				flightPrice);
+		boolean result = false;
+		try {
+			result = flightClient.addFlight(id, flightNumber, numSeats,
+                    flightPrice);
+		} catch (DeadlockException e) {
+			e.printStackTrace();
+			TMClient.getInstance().abort(id);
+			throw e;
+		}
 		return result;
 
 	}
 
 	@Override
-	public boolean deleteFlight(int id, int flightNumber) {
+	public boolean deleteFlight(int id, int flightNumber) throws DeadlockException {
 		Trace.info("RM::deleteFlight(" + id + ", " + flightNumber + ") called.");
-		return flightClient.deleteFlight(id, flightNumber);
+		try {
+			return flightClient.deleteFlight(id, flightNumber);
+		} catch (DeadlockException e) {
+			e.printStackTrace();
+			TMClient.getInstance().abort(id);
+			throw e;
+		}
 	}
 
 	// Returns the number of empty seats on this flight.
 	@Override
-	public int queryFlight(int id, int flightNumber) {
+	public int queryFlight(int id, int flightNumber) throws DeadlockException {
 		Trace.info("RM::queryFlight(" + id + ", " + flightNumber + ") called.");
-		return flightClient.queryFlight(id, flightNumber);
+		try {
+			return flightClient.queryFlight(id, flightNumber);
+		} catch (DeadlockException e) {
+			e.printStackTrace();
+			TMClient.getInstance().abort(id);
+			throw e;
+		}
 	}
 
 	// Returns price of this flight.
-	public int queryFlightPrice(int id, int flightNumber) {
+	public int queryFlightPrice(int id, int flightNumber) throws DeadlockException {
 		Trace.info("RM::queryFlightPrice(" + id + ", " + flightNumber
 				+ ") called.");
-		return flightClient.queryFlightPrice(id, flightNumber);
+		try {
+			return flightClient.queryFlightPrice(id, flightNumber);
+		} catch (DeadlockException e) {
+			e.printStackTrace();
+			TMClient.getInstance().abort(id);
+			throw e;
+		}
 	}
 
 	/*
@@ -256,10 +287,17 @@ public class Middleware implements ResourceManager {
 	// Note: if price <= 0 and the car location already exists, it maintains
 	// its current price.
 	@Override
-	public boolean addCars(int id, String location, int numCars, int carPrice) {
+	public boolean addCars(int id, String location, int numCars, int carPrice) throws DeadlockException {
 		Trace.info("RM::addCars(" + id + ", " + location + ", " + numCars
 				+ ", $" + carPrice + ") called.");
-		boolean result = carClient.addCars(id, location, numCars, carPrice);
+		boolean result = false;
+		try {
+			result = carClient.addCars(id, location, numCars, carPrice);
+		} catch (DeadlockException e) {
+			e.printStackTrace();
+			TMClient.getInstance().abort(id);
+			throw e;
+		}
 		Trace.info("RM::addCars(" + id + ", " + location + ", " + numCars
 				+ ", $" + carPrice + ") OK.");
 		return result;
@@ -267,27 +305,48 @@ public class Middleware implements ResourceManager {
 
 	// Delete cars from a location.
 	@Override
-	public boolean deleteCars(int id, String location) {
+	public boolean deleteCars(int id, String location) throws DeadlockException {
 		Trace.info("RM::deleteCars(" + id + ", " + location + ") called.");
-		boolean result = carClient.deleteCars(id, location);
+		boolean result = false;
+		try {
+			result = carClient.deleteCars(id, location);
+		} catch (DeadlockException e) {
+			e.printStackTrace();
+			TMClient.getInstance().abort(id);
+			throw e;
+		}
 		Trace.info("RM::addCars(" + id + ", " + location + ") OK.");
 		return result;
 	}
 
 	// Returns the number of cars available at a location.
 	@Override
-	public int queryCars(int id, String location) {
+	public int queryCars(int id, String location) throws DeadlockException {
 		Trace.info("RM::queryCars(" + id + ", " + location + ") called.");
-		int result = carClient.queryCars(id, location);
+		int result = 0;
+		try {
+			result = carClient.queryCars(id, location);
+		} catch (DeadlockException e) {
+			e.printStackTrace();
+			TMClient.getInstance().abort(id);
+			throw e;
+		}
 		Trace.info("RM::queryCars(" + id + ", " + location + ") OK.");
 		return result;
 	}
 
 	// Returns price of cars at this location.
 	@Override
-	public int queryCarsPrice(int id, String location) {
+	public int queryCarsPrice(int id, String location) throws DeadlockException {
 		Trace.info("RM::queryCarsPrice(" + id + ", " + location + ") called.");
-		int result = carClient.queryCarsPrice(id, location);
+		int result = 0;
+		try {
+			result = carClient.queryCarsPrice(id, location);
+		} catch (DeadlockException e) {
+			e.printStackTrace();
+			TMClient.getInstance().abort(id);
+			throw e;
+		}
 		Trace.info("RM::queryCarsPrice(" + id + ", " + location + ") OK.");
 		return result;
 	}
@@ -298,10 +357,17 @@ public class Middleware implements ResourceManager {
 	// Note: if price <= 0 and the room location already exists, it maintains
 	// its current price.
 	@Override
-	public boolean addRooms(int id, String location, int numRooms, int roomPrice) {
+	public boolean addRooms(int id, String location, int numRooms, int roomPrice) throws DeadlockException {
 		Trace.info("RM::addRooms(" + id + ", " + location + ", " + numRooms
 				+ ", $" + roomPrice + ") called.");
-		boolean result = roomClient.addRooms(id, location, numRooms, roomPrice);
+		boolean result = false;
+		try {
+			result = roomClient.addRooms(id, location, numRooms, roomPrice);
+		} catch (DeadlockException e) {
+			e.printStackTrace();
+			TMClient.getInstance().abort(id);
+			throw e;
+		}
 		Trace.info("RM::addRooms(" + id + ", " + location + ", " + numRooms
 				+ ", $" + roomPrice + ") OK.");
 		return result;
@@ -309,27 +375,48 @@ public class Middleware implements ResourceManager {
 
 	// Delete rooms from a location.
 	@Override
-	public boolean deleteRooms(int id, String location) {
+	public boolean deleteRooms(int id, String location) throws DeadlockException {
 		Trace.info("RM::deleteRooms(" + id + ", " + location + ") called.");
-		boolean result = roomClient.deleteRooms(id, location);
+		boolean result = false;
+		try {
+			result = roomClient.deleteRooms(id, location);
+		} catch (DeadlockException e) {
+			e.printStackTrace();
+			TMClient.getInstance().abort(id);
+			throw e;
+		}
 		Trace.info("RM::deleteRooms(" + id + ", " + location + ") OK.");
 		return result;
 	}
 
 	// Returns the number of rooms available at a location.
 	@Override
-	public int queryRooms(int id, String location) {
+	public int queryRooms(int id, String location) throws DeadlockException {
 		Trace.info("RM::queryRooms(" + id + ", " + location + ") called.");
-		int result = roomClient.queryRooms(id, location);
+		int result = 0;
+		try {
+			result = roomClient.queryRooms(id, location);
+		} catch (DeadlockException e) {
+			e.printStackTrace();
+			TMClient.getInstance().abort(id);
+			throw e;
+		}
 		Trace.info("RM::queryRooms(" + id + ", " + location + ") OK.");
 		return result;
 	}
 
 	// Returns room price at this location.
 	@Override
-	public int queryRoomsPrice(int id, String location) {
+	public int queryRoomsPrice(int id, String location) throws DeadlockException {
 		Trace.info("RM::queryRoomsPrice(" + id + ", " + location + ") called.");
-		int result = roomClient.queryRoomsPrice(id, location);
+		int result = 0;
+		try {
+			result = roomClient.queryRoomsPrice(id, location);
+		} catch (DeadlockException e) {
+			e.printStackTrace();
+			TMClient.getInstance().abort(id);
+			throw e;
+		}
 		Trace.info("RM::queryRoomsPrice(" + id + ", " + location + ") OK.");
 		return result;
 	}
@@ -364,60 +451,66 @@ public class Middleware implements ResourceManager {
 
 	// Delete customer from the database.
 		@Override
-		public boolean deleteCustomer(int id, int customerId) {
-			Trace.info("RM::deleteCustomer(" + id + ", " + customerId + ") called.");
-			// Check if customer exists
-			String customerInfo = queryCustomerInfo(id, customerId);
-			// Check if customer exists
-			if (customerInfo.isEmpty()) {
-				Trace.info("Customer does not exist");
-				return false;
-			} else {
-				Trace.info("Found customer: " + customerInfo);
-			}
-
-			//Get the bill for the customer
-			String reservations = customerInfo;
-			System.out.println(reservations);
-			
-			//Now parse the bill
-			//First parse the string by lines 
-			StringTokenizer tokenizer = new StringTokenizer(reservations, "\n");
-			while(tokenizer.hasMoreTokens()){
-
-				//Now parse the bill using spaces
-	            String line  = tokenizer.nextToken().trim();
-				String[] tokens = line.split(" ");
-				//Skip lines that are not relevant
-				if(tokens[0].equals("Bill") || tokens.length < 2){
-					continue;
-				} 
-				
-				//The key will be "type-arg" so split it around the '-' and
-				//then cancel the item
-				for(String t : tokens){
-					System.out.print(t);
+		public boolean deleteCustomer(int id, int customerId) throws DeadlockException {
+			try {
+				Trace.info("RM::deleteCustomer(" + id + ", " + customerId + ") called.");
+				// Check if customer exists
+				String customerInfo = queryCustomerInfo(id, customerId);
+				// Check if customer exists
+				if (customerInfo.isEmpty()) {
+					Trace.info("Customer does not exist");
+					return false;
+				} else {
+					Trace.info("Found customer: " + customerInfo);
 				}
-				System.out.println();
-				int numItems = Integer.parseInt(tokens[0]);
-				String[] keyArray = tokens[1].split("-");
-				MWClient client;
-				if (keyArray[0].equals("flight")){
-					for(int i = 0; i < numItems; i++){
-						flightClient.cancelReserveFlight(id, customerId, Integer.parseInt(keyArray[1]));
+
+				//Get the bill for the customer
+				String reservations = customerInfo;
+				System.out.println(reservations);
+
+				//Now parse the bill
+				//First parse the string by lines
+				StringTokenizer tokenizer = new StringTokenizer(reservations, "\n");
+				while (tokenizer.hasMoreTokens()) {
+
+					//Now parse the bill using spaces
+					String line = tokenizer.nextToken().trim();
+					String[] tokens = line.split(" ");
+					//Skip lines that are not relevant
+					if (tokens[0].equals("Bill") || tokens.length < 2) {
+						continue;
 					}
-				} else if(keyArray[0].equals("car")) {
-					for(int i = 0; i < numItems; i++){
-						carClient.cancelReserveCar(id,customerId,keyArray[1]);
+
+					//The key will be "type-arg" so split it around the '-' and
+					//then cancel the item
+					for (String t : tokens) {
+						System.out.print(t);
 					}
-				} else if(keyArray[0].equals("room")){
-					for(int i = 0; i < numItems; i++){
-						roomClient.cancelReserveRoom(id,customerId,keyArray[1]);
+					System.out.println();
+					int numItems = Integer.parseInt(tokens[0]);
+					String[] keyArray = tokens[1].split("-");
+					MWClient client;
+					if (keyArray[0].equals("flight")) {
+						for (int i = 0; i < numItems; i++) {
+							flightClient.cancelReserveFlight(id, customerId, Integer.parseInt(keyArray[1]));
+						}
+					} else if (keyArray[0].equals("car")) {
+						for (int i = 0; i < numItems; i++) {
+							carClient.cancelReserveCar(id, customerId, keyArray[1]);
+						}
+					} else if (keyArray[0].equals("room")) {
+						for (int i = 0; i < numItems; i++) {
+							roomClient.cancelReserveRoom(id, customerId, keyArray[1]);
+						}
 					}
 				}
+
+				return custClient.deleteCustomer(id, customerId);
+			}catch (DeadlockException e){
+				e.printStackTrace();
+				TMClient.getInstance().abort(id);
+				throw e;
 			}
-				
-			return custClient.deleteCustomer(id,customerId);
 			
 		}
 
@@ -430,17 +523,24 @@ public class Middleware implements ResourceManager {
 
 	// Return a bill.
 	@Override
-	public String queryCustomerInfo(int id, int customerId) {
+	public String queryCustomerInfo(int id, int customerId) throws DeadlockException {
 		Trace.info("RM::queryCustomerInfo(" + id + ", " + customerId
 				+ ") called.");
-		String result = custClient.queryCustomerInfo(id, customerId);
+		String result = null;
+		try {
+			result = custClient.queryCustomerInfo(id, customerId);
+		} catch (DeadlockException e) {
+			e.printStackTrace();
+			TMClient.getInstance().abort(id);
+			throw e;
+		}
 		Trace.info("RM::queryCustomerInfo(" + id + ", " + customerId + ") OK.");
 		return result;
 	}
 
 	// Add flight reservation to this customer.
 	@Override
-	public boolean reserveFlight(int id, int customerId, int flightNumber) {
+	public boolean reserveFlight(int id, int customerId, int flightNumber) throws DeadlockException {
 		Trace.info("RM::reserveFlight(" + id + ", " + customerId + ","
 				+ flightNumber + ") called.");
 		Trace.info("Retrieving customer data");
@@ -456,25 +556,31 @@ public class Middleware implements ResourceManager {
 	}
 
 	private boolean reserveFlightNoCustCheck(int id, int customerId,
-			int flightNumber) {
+			int flightNumber) throws DeadlockException {
 		// Try to reserver a flight with the flight RM
 		int price = 0;
-		boolean flightStatus = flightClient.reserveFlight(id, customerId,flightNumber);
-		if (flightStatus) {
-			price = flightClient.queryFlightPrice(id, flightNumber);
-		} else {
-			return false;
+		try {
+			boolean flightStatus = flightClient.reserveFlight(id, customerId, flightNumber);
+			if (flightStatus) {
+				price = flightClient.queryFlightPrice(id, flightNumber);
+			} else {
+				return false;
+			}
+			// Add reservation to customer
+			custClient.reserveCustomer(id, customerId, Flight.getKey(flightNumber),
+					String.valueOf(flightNumber), price);
+		}catch (DeadlockException e){
+			e.printStackTrace();
+			TMClient.getInstance().abort(id);
+			throw e;
 		}
-		// Add reservation to customer
-		custClient.reserveCustomer(id, customerId, Flight.getKey(flightNumber),
-				String.valueOf(flightNumber), price);
 
 		return true;
 	}
 
 	// Add car reservation to this customer.
 	@Override
-	public boolean reserveCar(int id, int customerId, String location) {
+	public boolean reserveCar(int id, int customerId, String location) throws DeadlockException {
 		Trace.info("RM::reserveCar(" + id + ", " + customerId + "," + location
 				+ ") called.");
 		Trace.info("Retrieving customer data");
@@ -490,25 +596,30 @@ public class Middleware implements ResourceManager {
 	}
 
 	private boolean reserveCarNoCustCheck(int id, int customerId,
-			String location) {
+			String location) throws DeadlockException {
 		// Try to reserver a car with the car RM
 		int price = 0;
-		boolean carStatus = carClient.reserveCar(id, customerId, location);
-		if (carStatus) {
-			price = carClient.queryCarsPrice(id, location);
-		} else {
-			return false;
+		try {
+			boolean carStatus = carClient.reserveCar(id, customerId, location);
+			if (carStatus) {
+				price = carClient.queryCarsPrice(id, location);
+			} else {
+				return false;
+			}
+			// Add reservation to customer
+			custClient.reserveCustomer(id, customerId, Car.getKey(location), location,
+					price);
+		}catch (DeadlockException e){
+			e.printStackTrace();
+			TMClient.getInstance().abort(id);
+			throw e;
 		}
-		// Add reservation to customer
-		custClient.reserveCustomer(id, customerId, Car.getKey(location), location,
-				price);
-
 		return true;
 	}
 
 	// Add room reservation to this customer.
 	@Override
-	public boolean reserveRoom(int id, int customerId, String location) {
+	public boolean reserveRoom(int id, int customerId, String location) throws DeadlockException {
 		Trace.info("RM::reserveRoom(" + id + ", " + customerId + "," + location
 				+ ") called.");
 		Trace.info("Retrieving customer data");
@@ -523,26 +634,31 @@ public class Middleware implements ResourceManager {
 		return reserveRoomNoCust(id, customerId, location);
 	}
 
-	private boolean reserveRoomNoCust(int id, int customerId, String location) {
+	private boolean reserveRoomNoCust(int id, int customerId, String location) throws DeadlockException {
 		// Try to reserver a car with the car RM
 		int price = 0;
-		boolean roomStatus = roomClient.reserveRoom(id, customerId, location);
-		if (roomStatus) {
-			price = roomClient.queryRoomsPrice(id, location);
-		} else {
-			return false;
+		try {
+			boolean roomStatus = roomClient.reserveRoom(id, customerId, location);
+			if (roomStatus) {
+				price = roomClient.queryRoomsPrice(id, location);
+			} else {
+				return false;
+			}
+			// Add reservation to customer
+			custClient.reserveCustomer(id, customerId, Room.getKey(location), location,
+					price);
+		}catch (DeadlockException e){
+			e.printStackTrace();
+			TMClient.getInstance().abort(id);
+			throw e;
 		}
-		// Add reservation to customer
-		custClient.reserveCustomer(id, customerId, Room.getKey(location), location,
-				price);
-
 		return true;
 	}
 
 	// Reserve an itinerary.
 	@Override
 	public boolean reserveItinerary(int id, int customerId,
-			Vector flightNumbers, String location, boolean car, boolean room) {
+			Vector flightNumbers, String location, boolean car, boolean room) throws DeadlockException {
 		String s = "RM::reserveItinerary(" + id + ", " + customerId + ",";
 
 		for (Object o : flightNumbers) {
@@ -566,89 +682,94 @@ public class Middleware implements ResourceManager {
 		int numFlightsReserved = 0;
 		
 			// First try the car
-		
-		if(car){
-			carSuccess = carClient.reserveCar(id, customerId, location);
-		} 
-		
-		if (carSuccess) {
-			Trace.info("car reserved successfully");
-		}
+		try {
+			if (car) {
+				carSuccess = carClient.reserveCar(id, customerId, location);
+			}
 
-		// Don't bother with room if the car didn't succeed
-		if (room && (!car || carSuccess)) {
-			roomSuccess = roomClient.reserveRoom(id, customerId, location);
-		}
-		if (roomSuccess) {
-			Trace.info("room reserved successfully");
-		}
-		// Don't bother with flight if room didn't succeed
-		//Did we need a room? If so it has to succeed.
-		//Did we need a car? if so it has to succeed 
-		if ((!room || (room && roomSuccess)) && (!car || (car && carSuccess))) {
-			for (Object fNumber : flightNumbers) {
-				int flightNumber = Integer.parseInt(fNumber.toString());
-				flightSuccess = flightClient.reserveFlight(id, customerId, flightNumber);
+			if (carSuccess) {
+				Trace.info("car reserved successfully");
+			}
 
-				if(flightSuccess){
-					numFlightsReserved++;
-				} else {
-					break;
+			// Don't bother with room if the car didn't succeed
+			if (room && (!car || carSuccess)) {
+				roomSuccess = roomClient.reserveRoom(id, customerId, location);
+			}
+			if (roomSuccess) {
+				Trace.info("room reserved successfully");
+			}
+			// Don't bother with flight if room didn't succeed
+			//Did we need a room? If so it has to succeed.
+			//Did we need a car? if so it has to succeed
+			if ((!room || (room && roomSuccess)) && (!car || (car && carSuccess))) {
+				for (Object fNumber : flightNumbers) {
+					int flightNumber = Integer.parseInt(fNumber.toString());
+					flightSuccess = flightClient.reserveFlight(id, customerId, flightNumber);
+
+					if (flightSuccess) {
+						numFlightsReserved++;
+					} else {
+						break;
+					}
+				}
+
+			}
+
+			boolean flightFailed = !flightSuccess;
+			boolean roomFailed = (room && !roomSuccess);
+			boolean carFailed = (car && !carSuccess);
+
+			boolean removeCar = (car && carSuccess) && (roomFailed || flightFailed);
+			boolean removeRoom = (room && roomSuccess) && flightFailed;
+			boolean removeFlights = numFlightsReserved > 0 && flightFailed;
+
+			if (removeCar) {
+
+				carClient.cancelReserveCar(id, customerId, location);
+				Trace.info("removed car reservation");
+			}
+			if (removeRoom) {
+				roomClient.cancelReserveRoom(id, customerId, location);
+				Trace.info("removed room reservation");
+			}
+			if (removeFlights) {
+				Trace.info("removing " + numFlightsReserved + "flight reservations");
+				for (int i = 0; i < numFlightsReserved; i++) {
+					String fNumber = flightNumbers.get(i).toString();
+					int flightNumber = Integer.parseInt(fNumber);
+					flightClient.cancelReserveFlight(id, customerId, flightNumber);
 				}
 			}
 
-		}
-		
-		boolean flightFailed = !flightSuccess;
-		boolean roomFailed = (room && !roomSuccess);
-		boolean carFailed = (car && !carSuccess);
-		
-		boolean removeCar = (car && carSuccess) && (roomFailed ||  flightFailed);
-		boolean removeRoom = (room && roomSuccess) && flightFailed;
-		boolean removeFlights = numFlightsReserved > 0 && flightFailed;
+			//if none of them failed
+			if (!(carFailed || roomFailed || flightFailed)) {
+				int price = 0;
 
-		if (removeCar) {
-			
-			carClient.cancelReserveCar(id, customerId,location);
-			Trace.info("removed car reservation");
-		}
-		if (removeRoom) {
-			roomClient.cancelReserveRoom(id, customerId,location);
-			Trace.info("removed room reservation");
-		}
-		if (removeFlights) {
-			Trace.info("removing " + numFlightsReserved + "flight reservations");
-			for (int i = 0; i < numFlightsReserved; i++) {
-				String fNumber = flightNumbers.get(i).toString();
-				int flightNumber = Integer.parseInt(fNumber);
-				flightClient.cancelReserveFlight(id, customerId, flightNumber);
+				if (car) {
+					price = carClient.queryCarsPrice(id, location);
+					custClient.reserveCustomer(id, customerId, Car.getKey(location),
+							location, price);
+				}
+				if (room) {
+					price = roomClient.queryRoomsPrice(id, location);
+					custClient.reserveCustomer(id, customerId, Room.getKey(location),
+							location, price);
+				}
+				for (Object fNumber : flightNumbers) {
+					int flightNumber = Integer.parseInt(fNumber.toString());
+					price = flightClient.queryFlightPrice(id, flightNumber);
+					custClient.reserveCustomer(id, customerId,
+							Flight.getKey(flightNumber), location, price);
+				}
+				Trace.info("Itinerary booked successfully");
+				return true;
+			} else {
+				return false;
 			}
-		}
-
-		//if none of them failed
-		if (!(carFailed || roomFailed || flightFailed)) {
-			int price = 0;
-		
-			if(car){
-				price = carClient.queryCarsPrice(id, location);
-				custClient.reserveCustomer(id, customerId, Car.getKey(location),
-						location, price);
-			}
-			if(room){
-				price = roomClient.queryRoomsPrice(id, location);
-				custClient.reserveCustomer(id, customerId, Room.getKey(location),
-						location, price);
-			}
-			for (Object fNumber : flightNumbers) {
-				int flightNumber = Integer.parseInt(fNumber.toString());
-				price = flightClient.queryFlightPrice(id, flightNumber);
-				custClient.reserveCustomer(id, customerId,
-						Flight.getKey(flightNumber), location, price);
-			}
-			Trace.info("Itinerary booked successfully");
-			return true;
-		} else {
-			return false;
+		}catch (DeadlockException e){
+			e.printStackTrace();
+			TMClient.getInstance().abort(id);
+			throw e;
 		}
 	}
 

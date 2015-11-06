@@ -3,17 +3,20 @@ package middleware.client;
 import java.util.*;
 import java.io.*;
 
+
+import lockmanager.DeadlockException;
+import lockmanager.LockManager;
+import lockmanager.TrxnObj;
 import middleware.tm.TMClient;
-import server.Car;
-import server.Flight;
-import server.RMHashtable;
-import server.Room;
+import server.*;
 
 public class MWClient extends WSClient {
+	private LockManager lockManager;
 
-	public MWClient(String serviceName, String serviceHost, int servicePort)
+	public MWClient(String serviceName, String serviceHost, int servicePort, LockManager lockManager)
 			throws Exception {
 		super(serviceName, serviceHost, servicePort);
+		this.lockManager = lockManager;
 	}
 
 	
@@ -71,8 +74,16 @@ public class MWClient extends WSClient {
 	}
 
 	public boolean addFlight(int id, int flightNumber, int numSeats,
-			int flightPrice) {
+			int flightPrice) throws DeadlockException {
 		boolean flightStatus = false;
+		TMClient.getInstance().enlistFlightRM(id);
+		try {
+			lockManager.Lock(id, Flight.getKey(flightNumber), TrxnObj.WRITE);
+		} catch (DeadlockException e) {
+			e.printStackTrace();
+			TMClient.getInstance().abort(id);
+			throw e;
+		}
 		try {
 			flightStatus = proxy.addFlight(id, flightNumber, numSeats,
 					flightPrice);
@@ -82,8 +93,16 @@ public class MWClient extends WSClient {
 		return flightStatus;
 	}
 
-	public boolean deleteFlight(int id, int flightNumber) {
+	public boolean deleteFlight(int id, int flightNumber) throws DeadlockException {
 		boolean flightStatus = false;
+		TMClient.getInstance().enlistFlightRM(id);
+		try {
+			lockManager.Lock(id, Flight.getKey(flightNumber), TrxnObj.WRITE);
+		} catch (DeadlockException e) {
+			e.printStackTrace();
+			TMClient.getInstance().abort(id);
+			throw e;
+		}
 		try {
 			flightStatus = proxy.deleteFlight(id, flightNumber);
 		} catch (Exception e) {
@@ -92,8 +111,16 @@ public class MWClient extends WSClient {
 		return flightStatus;
 	}
 
-	public int queryFlight(int id, int flightNumber) {
+	public int queryFlight(int id, int flightNumber) throws DeadlockException {
 		int flightStatus = 0;
+		TMClient.getInstance().enlistFlightRM(id);
+		try {
+			lockManager.Lock(id, Flight.getKey(flightNumber), TrxnObj.READ);
+		} catch (DeadlockException e) {
+			e.printStackTrace();
+			TMClient.getInstance().abort(id);
+			throw e;
+		}
 		try {
 			flightStatus = proxy.queryFlight(id, flightNumber);
 		} catch (Exception e) {
@@ -102,8 +129,16 @@ public class MWClient extends WSClient {
 		return flightStatus;
 	}
 
-	public int queryFlightPrice(int id, int flightNumber) {
+	public int queryFlightPrice(int id, int flightNumber) throws DeadlockException {
 		int flightStatus = 0;
+		TMClient.getInstance().enlistFlightRM(id);
+		try {
+			lockManager.Lock(id, Flight.getKey(flightNumber), TrxnObj.READ);
+		} catch (DeadlockException e) {
+			e.printStackTrace();
+			TMClient.getInstance().abort(id);
+			throw e;
+		}
 		try {
 			flightStatus = proxy.queryFlightPrice(id, flightNumber);
 		} catch (Exception e) {
@@ -112,8 +147,16 @@ public class MWClient extends WSClient {
 		return flightStatus;
 	}
 
-	public boolean addCars(int id, String location, int numCars, int carPrice) {
+	public boolean addCars(int id, String location, int numCars, int carPrice) throws DeadlockException {
 		boolean carStatus = false;
+		TMClient.getInstance().enlistCarRM(id);
+		try {
+			lockManager.Lock(id, Car.getKey(location), TrxnObj.WRITE);
+		} catch (DeadlockException e) {
+			e.printStackTrace();
+			TMClient.getInstance().abort(id);
+			throw e;
+		}
 		try {
 			carStatus = proxy.addCars(id, location, numCars, carPrice);
 		} catch (Exception e) {
@@ -122,8 +165,16 @@ public class MWClient extends WSClient {
 		return carStatus;
 	}
 
-	public boolean deleteCars(int id, String location) {
+	public boolean deleteCars(int id, String location) throws DeadlockException {
 		boolean carStatus = false;
+		TMClient.getInstance().enlistCarRM(id);
+		try {
+			lockManager.Lock(id, Car.getKey(location), TrxnObj.WRITE);
+		} catch (DeadlockException e) {
+			e.printStackTrace();
+			TMClient.getInstance().abort(id);
+			throw e;
+		}
 		try {
 			carStatus = proxy.deleteCars(id, location);
 		} catch (Exception e) {
@@ -132,8 +183,16 @@ public class MWClient extends WSClient {
 		return carStatus;
 	}
 
-	public int queryCars(int id, String location) {
+	public int queryCars(int id, String location) throws DeadlockException {
 		int carStatus = 0;
+		TMClient.getInstance().enlistCarRM(id);
+		try {
+			lockManager.Lock(id, Car.getKey(location), TrxnObj.READ);
+		} catch (DeadlockException e) {
+			e.printStackTrace();
+			TMClient.getInstance().abort(id);
+			throw e;
+		}
 		try {
 			carStatus = proxy.queryCars(id, location);
 		} catch (Exception e) {
@@ -142,8 +201,16 @@ public class MWClient extends WSClient {
 		return carStatus;
 	}
 
-	public int queryCarsPrice(int id, String location) {
+	public int queryCarsPrice(int id, String location) throws DeadlockException {
 		int carStatus = 0;
+		TMClient.getInstance().enlistCarRM(id);
+		try {
+			lockManager.Lock(id, Car.getKey(location), TrxnObj.WRITE);
+		} catch (DeadlockException e) {
+			e.printStackTrace();
+			TMClient.getInstance().abort(id);
+			throw e;
+		}
 		try {
 			carStatus = proxy.queryCarsPrice(id, location);
 		} catch (Exception e) {
@@ -152,8 +219,16 @@ public class MWClient extends WSClient {
 		return carStatus;
 	}
 
-	public boolean addRooms(int id, String location, int numRooms, int roomPrice) {
+	public boolean addRooms(int id, String location, int numRooms, int roomPrice) throws DeadlockException {
 		boolean roomStatus = false;
+		TMClient.getInstance().enlistRoomRM(id);
+		try {
+			lockManager.Lock(id, Room.getKey(location), TrxnObj.WRITE);
+		} catch (DeadlockException e) {
+			e.printStackTrace();
+			TMClient.getInstance().abort(id);
+			throw e;
+		}
 		try {
 			roomStatus = proxy.addRooms(id, location, numRooms, roomPrice);
 		} catch (Exception e) {
@@ -162,8 +237,16 @@ public class MWClient extends WSClient {
 		return roomStatus;
 	}
 
-	public boolean deleteRooms(int id, String location) {
+	public boolean deleteRooms(int id, String location) throws DeadlockException {
 		boolean roomStatus = false;
+		TMClient.getInstance().enlistRoomRM(id);
+		try {
+			lockManager.Lock(id, Room.getKey(location), TrxnObj.WRITE);
+		} catch (DeadlockException e) {
+			e.printStackTrace();
+			TMClient.getInstance().abort(id);
+			throw e;
+		}
 		try {
 			roomStatus = proxy.deleteRooms(id, location);
 		} catch (Exception e) {
@@ -172,8 +255,16 @@ public class MWClient extends WSClient {
 		return roomStatus;
 	}
 
-	public int queryRooms(int id, String location) {
+	public int queryRooms(int id, String location) throws DeadlockException {
 		int roomStatus = 0;
+		TMClient.getInstance().enlistRoomRM(id);
+		try {
+			lockManager.Lock(id, Room.getKey(location), TrxnObj.READ);
+		} catch (DeadlockException e) {
+			e.printStackTrace();
+			TMClient.getInstance().abort(id);
+			throw e;
+		}
 		try {
 			roomStatus = proxy.queryRooms(id, location);
 		} catch (Exception e) {
@@ -182,8 +273,16 @@ public class MWClient extends WSClient {
 		return roomStatus;
 	}
 
-	public int queryRoomsPrice(int id, String location) {
+	public int queryRoomsPrice(int id, String location) throws DeadlockException {
 		int roomStatus = 0;
+		TMClient.getInstance().enlistRoomRM(id);
+		try {
+			lockManager.Lock(id, Room.getKey(location), TrxnObj.READ);
+		} catch (DeadlockException e) {
+			e.printStackTrace();
+			TMClient.getInstance().abort(id);
+			throw e;
+		}
 		try {
 			roomStatus = proxy.queryRoomsPrice(id, location);
 		} catch (Exception e) {
@@ -194,6 +293,7 @@ public class MWClient extends WSClient {
 
 	public int newCustomer(int id) {
 		int customerID = 0;
+		TMClient.getInstance().enlistCustomerRM(id);
 		try {
 			customerID = proxy.newCustomer(id);
 		} catch (Exception e) {
@@ -205,6 +305,7 @@ public class MWClient extends WSClient {
 	public boolean newCustomerId(int id, int customerId) {
 		boolean customerStatus = false;
 		try {
+			TMClient.getInstance().enlistCustomerRM(id);
 			customerStatus = proxy.newCustomerId(id, customerId);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -212,8 +313,16 @@ public class MWClient extends WSClient {
 		return customerStatus;
 	}
 
-	public String queryCustomerInfo(int id, int customerId) {
+	public String queryCustomerInfo(int id, int customerId) throws DeadlockException {
 		String customerStatus = "";
+		TMClient.getInstance().enlistCustomerRM(id);
+		try {
+			lockManager.Lock(id, Customer.getKey(customerId), TrxnObj.READ);
+		} catch (DeadlockException e) {
+			e.printStackTrace();
+			TMClient.getInstance().abort(id);
+			throw e;
+		}
 		try {
 			customerStatus = proxy.queryCustomerInfo(id, customerId);
 		} catch (Exception e) {
@@ -223,8 +332,16 @@ public class MWClient extends WSClient {
 	}
 
 	public boolean reserveCustomer(int id, int customerId, String key,
-			String location, int price) {
+			String location, int price) throws DeadlockException {
 		boolean customerStatus = false;
+		TMClient.getInstance().enlistCustomerRM(id);
+		try {
+			lockManager.Lock(id, Customer.getKey(customerId), TrxnObj.WRITE);
+		} catch (DeadlockException e) {
+			e.printStackTrace();
+			TMClient.getInstance().abort(id);
+			throw e;
+		}
 		try {
 			customerStatus = proxy.reserveCustomer(id, customerId, key,
 					location, price);
@@ -239,8 +356,10 @@ public class MWClient extends WSClient {
 
 	
 	// Add flight reservation to this customer.
-	public boolean reserveFlight(int id, int customerId, int flightNumber) {
+	public boolean reserveFlight(int id, int customerId, int flightNumber) throws DeadlockException {
 		boolean itemStatus = false;
+		TMClient.getInstance().enlistFlightRM(id);
+		lockManager.Lock(id, Flight.getKey(flightNumber), TrxnObj.WRITE);
 		try {
 			itemStatus = proxy.reserveFlight(id, customerId, flightNumber);
 		} catch (Exception e) {
@@ -250,8 +369,10 @@ public class MWClient extends WSClient {
 	}
 
 	// Add car reservation to this customer.
-	public boolean reserveCar(int id, int customerId, String location) {
+	public boolean reserveCar(int id, int customerId, String location) throws DeadlockException {
 		boolean itemStatus = false;
+		TMClient.getInstance().enlistCarRM(id);
+		lockManager.Lock(id, Car.getKey(location), TrxnObj.WRITE);
 		try {
 			itemStatus = proxy.reserveCar(id, customerId, location);
 		} catch (Exception e) {
@@ -261,8 +382,10 @@ public class MWClient extends WSClient {
 	}
 
 	// Add room reservation to this customer.
-	public boolean reserveRoom(int id, int customerId, String location) {
+	public boolean reserveRoom(int id, int customerId, String location) throws DeadlockException {
 		boolean itemStatus = false;
+		TMClient.getInstance().enlistRoomRM(id);
+		lockManager.Lock(id, Room.getKey(location), TrxnObj.WRITE);
 		try {
 			itemStatus = proxy.reserveRoom(id, customerId, location);
 		} catch (Exception e) {
@@ -271,8 +394,10 @@ public class MWClient extends WSClient {
 		return itemStatus;
 	}
 
-	public boolean cancelReserveCar(int id, int customerId, String location) {
+	public boolean cancelReserveCar(int id, int customerId, String location) throws DeadlockException {
 		boolean itemStatus = false;
+		TMClient.getInstance().enlistCarRM(id);
+		lockManager.Lock(id, Car.getKey(location), TrxnObj.WRITE);
 		try {
 			itemStatus = proxy.cancelReserveCar(id, customerId, location);
 		} catch (Exception e) {
@@ -282,8 +407,10 @@ public class MWClient extends WSClient {
 		
 	}
 
-	public boolean cancelReserveRoom(int id, int customerId, String location) {
+	public boolean cancelReserveRoom(int id, int customerId, String location) throws DeadlockException {
 		boolean itemStatus = false;
+		TMClient.getInstance().enlistRoomRM(id);
+		lockManager.Lock(id, Room.getKey(location), TrxnObj.WRITE);
 		try {
 			itemStatus = proxy.cancelReserveRoom(id, customerId, location);
 		} catch (Exception e) {
@@ -293,8 +420,10 @@ public class MWClient extends WSClient {
 		
 	}
 
-	public boolean cancelReserveFlight(int id, int customerId, int flightNumber) {
+	public boolean cancelReserveFlight(int id, int customerId, int flightNumber) throws DeadlockException {
 		boolean itemStatus = false;
+		TMClient.getInstance().enlistFlightRM(id);
+		lockManager.Lock(id, Flight.getKey(flightNumber), TrxnObj.WRITE);
 		try {
 			itemStatus = proxy.cancelReserveFlight(id, customerId, flightNumber);
 		} catch (Exception e) {
@@ -304,8 +433,10 @@ public class MWClient extends WSClient {
 		
 	}
 
-	public boolean deleteCustomer(int id, int customerId) {
+	public boolean deleteCustomer(int id, int customerId) throws DeadlockException {
 		boolean itemStatus = false;
+		TMClient.getInstance().enlistCustomerRM(id);
+		lockManager.Lock(id, Customer.getKey(customerId), TrxnObj.WRITE);
 		try {
 			itemStatus = proxy.deleteCustomer(id, customerId);
 		} catch (Exception e) {

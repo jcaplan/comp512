@@ -30,7 +30,8 @@ Inc.//DTD Web Application 2.3//EN"
 
     <env-entry>
         <env-entry-name>flight-service-host</env-entry-name>
-        <env-entry-value>lab1-14</env-entry-value>
+        <!-- <env-entry-value>lab1-14</env-entry-value> -->
+        <env-entry-value>localhost</env-entry-value>
         <env-entry-type>java.lang.String</env-entry-type>
     </env-entry>
     <env-entry>
@@ -42,6 +43,7 @@ Inc.//DTD Web Application 2.3//EN"
     <env-entry>
         <env-entry-name>room-service-host</env-entry-name>
         <env-entry-value>lab1-14</env-entry-value>
+        <env-entry-value>localhost</env-entry-value>
         <env-entry-type>java.lang.String</env-entry-type>
     </env-entry>
     <env-entry>
@@ -52,7 +54,8 @@ Inc.//DTD Web Application 2.3//EN"
 
     <env-entry>
         <env-entry-name>customer-service-host</env-entry-name>
-        <env-entry-value>lab1-14</env-entry-value>
+        <!-- <env-entry-value>lab1-14</env-entry-value> -->
+        <env-entry-value>localhost</env-entry-value>
         <env-entry-type>java.lang.String</env-entry-type>
     </env-entry>
     <env-entry>
@@ -63,7 +66,8 @@ Inc.//DTD Web Application 2.3//EN"
 
     <env-entry>
         <env-entry-name>car-service-host</env-entry-name>
-        <env-entry-value>lab1-14</env-entry-value>
+        <!-- <env-entry-value>lab1-14</env-entry-value> -->
+        <env-entry-value>localhost</env-entry-value>
         <env-entry-type>java.lang.String</env-entry-type>
     </env-entry>
     <env-entry>

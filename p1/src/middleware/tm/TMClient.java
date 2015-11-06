@@ -114,7 +114,7 @@ public class TMClient {
 		}
 		
 		for(MWClient rm: rms){
-//			rm.abort(id);
+			rm.abort(id);
 		}
 		rmList.remove(id);
 		timerList.get(id).cancel();

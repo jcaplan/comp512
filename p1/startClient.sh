@@ -1,4 +1,4 @@
 #!/bin/bash
 
 
-ant client -Dmiddleware-service.host=lab1-13
+ant client -Dmiddleware-service.host=localhost

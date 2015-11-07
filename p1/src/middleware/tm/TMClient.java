@@ -10,7 +10,7 @@ import middleware.client.MWClient;
 
 public class TMClient {
 
-	private static final int TIMEOUT_DELAY = 5000;
+	private static final int TIMEOUT_DELAY = 15000;
 	
 	HashMap<Integer, HashSet<MWClient>> rmList;
 	HashMap<Integer, TimerTask> timerList;
@@ -112,7 +112,7 @@ public class TMClient {
 		return false;
 	}
 	
-	public boolean abort(int id){
+	public synchronized boolean abort(int id){
 		
 		System.out.println("TMClient::abort");
 		HashSet<MWClient> rms = rmList.get(id);
@@ -125,8 +125,11 @@ public class TMClient {
 			rm.abort(id);
 		}
 		rmList.remove(id);
-		timerList.get(id).cancel();
-		timerList.remove(id);
+		TimerTask t = timerList.get(id);
+		if(t != null){
+			t.cancel();
+			timerList.remove(id);
+		}
 		lockManager.UnlockAll(id);
 		return false;
 	}

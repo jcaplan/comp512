@@ -589,8 +589,8 @@ public class Middleware implements ResourceManager {
 		}
 
 		if(!(carResult && roomResult && flightResult)){
-			TMClient.getInstance().abort(id);
-			return false;
+			
+			return abort(id);
 		}
 		
 		int price = 0;

@@ -2,7 +2,7 @@ package client;
 
 import java.util.*;
 import java.io.*;
-
+import lockmanager.DeadlockException;
 public class Client extends client.WSClient {
 
 	private Vector results = new Vector();
@@ -74,7 +74,7 @@ public class Client extends client.WSClient {
 		}
 	}
 
-	public void run() {
+	public void run() throws DeadlockException {
 
 		System.out.println("Client Interface");
 		System.out.println("Type \"help\" for list of supported commands");
@@ -98,7 +98,7 @@ public class Client extends client.WSClient {
 		}
 	}
 
-	public String handleRequest(String command) {
+	public String handleRequest(String command) throws DeadlockException {
 
 		int id;
 		int flightNumber;
@@ -153,11 +153,13 @@ public class Client extends client.WSClient {
 					System.out.println("Flight added");
 				else
 					System.out.println("Flight could not be added");
+			} catch(DeadlockException e) {
+				throw e;
 			} catch (Exception e) {
 				System.out.println("EXCEPTION: ");
 				System.out.println(e.getMessage());
 				e.printStackTrace();
-			}
+			}	
 			break;
 
 		case 3: // new car
@@ -182,11 +184,13 @@ public class Client extends client.WSClient {
 					System.out.println("cars added");
 				else
 					System.out.println("cars could not be added");
+			} catch(DeadlockException e) {
+				throw e;
 			} catch (Exception e) {
 				System.out.println("EXCEPTION: ");
 				System.out.println(e.getMessage());
 				e.printStackTrace();
-			}
+			}	
 			break;
 
 		case 4: // new room
@@ -211,11 +215,13 @@ public class Client extends client.WSClient {
 					System.out.println("rooms added");
 				else
 					System.out.println("rooms could not be added");
+			} catch(DeadlockException e) {
+				throw e;
 			} catch (Exception e) {
 				System.out.println("EXCEPTION: ");
 				System.out.println(e.getMessage());
 				e.printStackTrace();
-			}
+			}	
 			break;
 
 		case 5: // new Customer
@@ -231,11 +237,13 @@ public class Client extends client.WSClient {
 				int customer = proxy.newCustomer(id);
 				System.out.println("new customer id: " + customer);
 				resultString = Integer.toString(customer);
+			} catch(DeadlockException e) {
+				throw e;
 			} catch (Exception e) {
 				System.out.println("EXCEPTION: ");
 				System.out.println(e.getMessage());
 				e.printStackTrace();
-			}
+			}	
 			break;
 
 		case 6: // delete Flight
@@ -255,11 +263,13 @@ public class Client extends client.WSClient {
 					System.out.println("Flight Deleted");
 				else
 					System.out.println("Flight could not be deleted");
+			} catch(DeadlockException e) {
+				throw e;
 			} catch (Exception e) {
 				System.out.println("EXCEPTION: ");
 				System.out.println(e.getMessage());
 				e.printStackTrace();
-			}
+			}	
 			break;
 
 		case 7: // delete car
@@ -280,11 +290,13 @@ public class Client extends client.WSClient {
 					System.out.println("cars Deleted");
 				else
 					System.out.println("cars could not be deleted");
+			} catch(DeadlockException e) {
+				throw e;
 			} catch (Exception e) {
 				System.out.println("EXCEPTION: ");
 				System.out.println(e.getMessage());
 				e.printStackTrace();
-			}
+			}	
 			break;
 
 		case 8: // delete room
@@ -305,11 +317,13 @@ public class Client extends client.WSClient {
 					System.out.println("rooms Deleted");
 				else
 					System.out.println("rooms could not be deleted");
+			} catch(DeadlockException e) {
+				throw e;
 			} catch (Exception e) {
 				System.out.println("EXCEPTION: ");
 				System.out.println(e.getMessage());
 				e.printStackTrace();
-			}
+			}	
 			break;
 
 		case 9: // delete Customer
@@ -330,11 +344,13 @@ public class Client extends client.WSClient {
 					System.out.println("Customer Deleted");
 				else
 					System.out.println("Customer could not be deleted");
+			} catch(DeadlockException e) {
+				throw e;
 			} catch (Exception e) {
 				System.out.println("EXCEPTION: ");
 				System.out.println(e.getMessage());
 				e.printStackTrace();
-			}
+			}	
 			break;
 
 		case 10: // querying a flight
@@ -351,11 +367,13 @@ public class Client extends client.WSClient {
 				int seats = proxy.queryFlight(id, flightNumber);
 				System.out.println("Number of seats available: " + seats);
 				resultString = Integer.toString(seats);
+			} catch(DeadlockException e) {
+				throw e;
 			} catch (Exception e) {
 				System.out.println("EXCEPTION: ");
 				System.out.println(e.getMessage());
 				e.printStackTrace();
-			}
+			}	
 			break;
 
 		case 11: // querying a car Location
@@ -374,11 +392,13 @@ public class Client extends client.WSClient {
 				System.out.println("number of cars at this location: "
 						+ numCars);
 				resultString = Integer.toString(numCars);
+			} catch(DeadlockException e) {
+				throw e;
 			} catch (Exception e) {
 				System.out.println("EXCEPTION: ");
 				System.out.println(e.getMessage());
 				e.printStackTrace();
-			}
+			}	
 			break;
 
 		case 12: // querying a room location
@@ -397,11 +417,13 @@ public class Client extends client.WSClient {
 				System.out.println("number of rooms at this location: "
 						+ numRooms);
 				resultString = Integer.toString(numRooms);
+			} catch(DeadlockException e) {
+				throw e;
 			} catch (Exception e) {
 				System.out.println("EXCEPTION: ");
 				System.out.println(e.getMessage());
 				e.printStackTrace();
-			}
+			}	
 			break;
 
 		case 13: // querying Customer Information
@@ -419,11 +441,13 @@ public class Client extends client.WSClient {
 				String bill = proxy.queryCustomerInfo(id, customer);
 				System.out.println("Customer info: " + bill);
 				resultString = bill;
+			} catch(DeadlockException e) {
+				throw e;
 			} catch (Exception e) {
 				System.out.println("EXCEPTION: ");
 				System.out.println(e.getMessage());
 				e.printStackTrace();
-			}
+			}	
 			break;
 
 		case 14: // querying a flight Price
@@ -441,11 +465,13 @@ public class Client extends client.WSClient {
 				price = proxy.queryFlightPrice(id, flightNumber);
 				System.out.println("Price of a seat: " + price);
 				resultString = Integer.toString(price);
+			} catch(DeadlockException e) {
+				throw e;
 			} catch (Exception e) {
 				System.out.println("EXCEPTION: ");
 				System.out.println(e.getMessage());
 				e.printStackTrace();
-			}
+			}	
 			break;
 
 		case 15: // querying a car Price
@@ -463,11 +489,13 @@ public class Client extends client.WSClient {
 				price = proxy.queryCarsPrice(id, location);
 				System.out.println("Price of a car at this location: " + price);
 				resultString = Integer.toString(price);
+			} catch(DeadlockException e) {
+				throw e;
 			} catch (Exception e) {
 				System.out.println("EXCEPTION: ");
 				System.out.println(e.getMessage());
 				e.printStackTrace();
-			}
+			}	
 			break;
 
 		case 16: // querying a room price
@@ -485,11 +513,13 @@ public class Client extends client.WSClient {
 				price = proxy.queryRoomsPrice(id, location);
 				System.out.println("Price of rooms at this location: " + price);
 				resultString = Integer.toString(price);
+			} catch(DeadlockException e) {
+				throw e;
 			} catch (Exception e) {
 				System.out.println("EXCEPTION: ");
 				System.out.println(e.getMessage());
 				e.printStackTrace();
-			}
+			}	
 			break;
 
 		case 17: // reserve a flight
@@ -512,11 +542,13 @@ public class Client extends client.WSClient {
 					System.out.println("Flight Reserved");
 				else
 					System.out.println("Flight could not be reserved.");
+			} catch(DeadlockException e) {
+				throw e;
 			} catch (Exception e) {
 				System.out.println("EXCEPTION: ");
 				System.out.println(e.getMessage());
 				e.printStackTrace();
-			}
+			}	
 			break;
 
 		case 18: // reserve a car
@@ -538,11 +570,13 @@ public class Client extends client.WSClient {
 					System.out.println("car Reserved");
 				else
 					System.out.println("car could not be reserved.");
+			} catch(DeadlockException e) {
+				throw e;
 			} catch (Exception e) {
 				System.out.println("EXCEPTION: ");
 				System.out.println(e.getMessage());
 				e.printStackTrace();
-			}
+			}	
 			break;
 
 		case 19: // reserve a room
@@ -564,11 +598,13 @@ public class Client extends client.WSClient {
 					System.out.println("room Reserved");
 				else
 					System.out.println("room could not be reserved.");
+			} catch(DeadlockException e) {
+				throw e;
 			} catch (Exception e) {
 				System.out.println("EXCEPTION: ");
 				System.out.println(e.getMessage());
 				e.printStackTrace();
-			}
+			}	
 			break;
 
 		case 20: // reserve an Itinerary
@@ -599,12 +635,13 @@ public class Client extends client.WSClient {
                     System.out.println("Itinerary Reserved");
                 else
                     System.out.println("Itinerary could not be reserved.");
-            }
-            catch(Exception e) {
-                System.out.println("EXCEPTION: ");
-                System.out.println(e.getMessage());
-                e.printStackTrace();
-            }
+            }catch(DeadlockException e) {
+				throw e;
+			} catch (Exception e) {
+				System.out.println("EXCEPTION: ");
+				System.out.println(e.getMessage());
+				e.printStackTrace();
+			}	
             break;
                         
 
@@ -630,11 +667,13 @@ public class Client extends client.WSClient {
 				boolean c = proxy.newCustomerId(id, customer);
 				resultString = Boolean.toString(c);
 				System.out.println("new customer id: " + customer);
+			} catch(DeadlockException e) {
+				throw e;
 			} catch (Exception e) {
 				System.out.println("EXCEPTION: ");
 				System.out.println(e.getMessage());
 				e.printStackTrace();
-			}
+			}	
 			break;
 		case 23: // Start
 			if(arguments.size() != 1){
@@ -649,8 +688,8 @@ public class Client extends client.WSClient {
 			} catch (Exception e) {
 				System.out.println("EXCEPTION: ");
 				System.out.println(e.getMessage());
-				e.printStackTrace();	
-			}
+				e.printStackTrace();
+			}	
 			break;
 		case 24: // Commit
 			if(arguments.size() != 2){
@@ -661,11 +700,13 @@ public class Client extends client.WSClient {
 			try{
 				int txnId = getInt(arguments.elementAt(1));
 				proxy.commit(txnId);
-			} catch (Exception e){
+			}catch(DeadlockException e) {
+				throw e;
+			} catch (Exception e) {
 				System.out.println("EXCEPTION: ");
 				System.out.println(e.getMessage());
-				e.printStackTrace();	
-			}
+				e.printStackTrace();
+			}	
 			break;
 		case 25: // Abort
 			if(arguments.size() != 2){
@@ -676,11 +717,13 @@ public class Client extends client.WSClient {
 			try{
 				int txnId = getInt(arguments.elementAt(1));
 				proxy.abort(txnId);
-			} catch (Exception e){
+			} catch(DeadlockException e) {
+				throw e;
+			} catch (Exception e) {
 				System.out.println("EXCEPTION: ");
 				System.out.println(e.getMessage());
-				e.printStackTrace();	
-			}
+				e.printStackTrace();
+			}	
 			break;
 		case 26: // Shutdown
 			if(arguments.size() != 1){
@@ -690,11 +733,11 @@ public class Client extends client.WSClient {
 			System.out.println("Committing transaction");
 			try{
 				proxy.shutdown();
-			} catch (Exception e){
+			} catch (Exception e) {
 				System.out.println("EXCEPTION: ");
 				System.out.println(e.getMessage());
-				e.printStackTrace();	
-			}
+				e.printStackTrace();
+			}	
 			break;
 		default:
 			System.out.println("The interface does not support this command.");

@@ -13,16 +13,17 @@ public class ClientTestThread extends Thread{
 	}
 
 	public void run() {
-
-		int txnId = Integer.parseInt(client.handleRequest("start"));
-		this.clientId = client.handleRequest("newcustomer," + txnId);
-		client.handleRequest(String.format("commit,%d,",txnId));
-		
+		int txnId;
+		try{
+			txnId = Integer.parseInt(client.handleRequest("start"));
+			this.clientId = client.handleRequest("newcustomer," + txnId);
+			client.handleRequest(String.format("commit,%d,",txnId));
+		} catch (Exception e){
+			e.printStackTrace();
+			return;
+		}
 		
 		while (true){
-			
-			
-			
 			
 			long start = System.currentTimeMillis();
 			try{
@@ -39,8 +40,6 @@ public class ClientTestThread extends Thread{
 			long end = System.currentTimeMillis();
 
 			System.out.println("THREAD_" + Thread.currentThread().getId() + "::response time: " + (end - start));
-
-
 
 			try {
 				Thread.sleep(500);

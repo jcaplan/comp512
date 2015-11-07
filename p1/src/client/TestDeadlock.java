@@ -55,7 +55,7 @@ public class TestDeadlock {
 				System.out.println("hihi");
 				setupClient.handleRequest("deleteroom," + txnId + ",0");
 				setupClient.handleRequest("commit," + txnId);
-			} catch (DeadlockException e) {
+			} catch (DeadlockException_Exception e) {
 				System.out.println("DEADLOCK1!");
 				e.printStackTrace();
 			} catch (InterruptedException e) {
@@ -76,7 +76,7 @@ public class TestDeadlock {
 				System.out.println("hihi");
 				setupClient.handleRequest("deletecar," + txnId + ",0");
 				setupClient.handleRequest("commit," + txnId);
-			} catch (DeadlockException e) {
+			} catch (DeadlockException_Exception e) {
 				System.out.println("DEADLOCK2!");
 				e.printStackTrace();
 			} catch (InterruptedException e) {

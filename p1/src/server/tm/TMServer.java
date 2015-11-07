@@ -60,6 +60,7 @@ public class TMServer {
 	}
 
 	public boolean start(int id){
+		System.out.println("TMServer::start txn " + id);
 		if(txnWriteList.containsKey(id)){
 			return false;
 		} else {
@@ -85,6 +86,7 @@ public class TMServer {
 	}
 	
 	public boolean commitTxn(int id){
+		System.out.println("TMServer::commit txn" + id);
 		if(!txnWriteList.containsKey(id)){
 			return false;
 		}

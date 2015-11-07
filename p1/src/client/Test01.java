@@ -1,6 +1,7 @@
-package test;
+package client;
 
 
+import test.ClientTestThread;
 import client.*;
 //Test 01 : multithreaded client
 
@@ -25,9 +26,11 @@ public class Test01 {
 		// set up servers
 
 		Client setupClient = new Client(serviceName, serviceHost, servicePort);
-		setupClient.handleRequest("newcar,0,0,100,100");
-		setupClient.handleRequest("newflight,0,0,100,200");
-		setupClient.handleRequest("newroom,0,0,100,300");
+		String txnId = setupClient.handleRequest("start");
+		setupClient.handleRequest(String.format("newcar,%s,0,100,100",txnId));
+		setupClient.handleRequest(String.format("newflight,%s,0,100,200",txnId));
+		setupClient.handleRequest(String.format("newroom,%s,0,100,300",txnId));
+		setupClient.handleRequest("commit,"+txnId);
 
 		ClientTestThread[] clientThread = new ClientTestThread[NUM_THREADS];
 
@@ -43,11 +46,20 @@ public class Test01 {
 
 		}
 
-		int numCars = Integer.parseInt(setupClient.handleRequest("querycar,0,0"));
-		int numFlights = Integer.parseInt(setupClient.handleRequest("queryflight,0,0"));
-		int numRooms = Integer.parseInt(setupClient.handleRequest("queryroom,0,0"));
+		for(int i = 0; i < NUM_THREADS; i++){
+			txnId = setupClient.handleRequest("start");
+			setupClient.handleRequest("deletecustomer," + txnId + ","+clientThread[i].clientId);
+			setupClient.handleRequest(String.format("commit,%s,",txnId));
 		
-		boolean error = false;;
+		}
+
+		txnId = setupClient.handleRequest("start");
+		int numCars = Integer.parseInt(setupClient.handleRequest(String.format("querycar,%s,0",txnId)));
+		int numFlights = Integer.parseInt(setupClient.handleRequest(String.format("queryflight,%s,0",txnId)));
+		int numRooms = Integer.parseInt(setupClient.handleRequest(String.format("queryroom,%s,0",txnId)));
+		setupClient.handleRequest("commit,"+txnId);
+		
+		boolean error = false;
 		if(numCars != 100){
 			System.err.println("number of cars is incorrect");
 			error = true;

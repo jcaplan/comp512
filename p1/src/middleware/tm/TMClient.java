@@ -5,11 +5,12 @@ import java.util.HashSet;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import lockmanager.LockManager;
 import middleware.client.MWClient;
 
 public class TMClient {
 
-	private static final int TIMEOUT_DELAY = 2000;
+	private static final int TIMEOUT_DELAY = 5000;
 	
 	HashMap<Integer, HashSet<MWClient>> rmList;
 	HashMap<Integer, TimerTask> timerList;
@@ -61,11 +62,14 @@ public class TMClient {
 		}
 		
 		
-		
+
+		System.out.println("TMClient::start = " + id);
 		return id;
 	}
 	
 	int objectCount = 0;
+
+	private LockManager lockManager;
 	private class AbortTxn extends TimerTask {
 		int id;
 		int count;
@@ -87,10 +91,12 @@ public class TMClient {
 	}
 	
 	public boolean commit(int id){
-		
+
+		System.out.println("TMClient::commit txn" + id);
 		HashSet<MWClient> rms = rmList.get(id);
 		
 		if(rms == null){
+			System.out.println("TMClient::txn id not found");
 			return false;
 		}
 		
@@ -101,12 +107,14 @@ public class TMClient {
 		rmList.remove(id);
 		timerList.get(id).cancel();
 		timerList.remove(id);
+		lockManager.UnlockAll(id);
 		
 		return false;
 	}
 	
 	public boolean abort(int id){
 		
+		System.out.println("TMClient::abort");
 		HashSet<MWClient> rms = rmList.get(id);
 		
 		if(rms == null){
@@ -119,6 +127,7 @@ public class TMClient {
 		rmList.remove(id);
 		timerList.get(id).cancel();
 		timerList.remove(id);
+		lockManager.UnlockAll(id);
 		return false;
 	}
 	
@@ -129,6 +138,7 @@ public class TMClient {
 	}
 	
 	private void resetTimer(int id) {
+		timerList.get(id).cancel();
 		TimerTask abortTxn = new AbortTxn(id);
 		timerList.put(id, abortTxn);
 		System.out.println("TMCLIENT::new timer: " + ((AbortTxn) abortTxn).getCount());
@@ -144,6 +154,9 @@ public class TMClient {
 		}
 		
 		resetTimer(id);
+		if(!rms.contains(carClient)){
+			carClient.start(id);
+		}
 		rms.add(carClient);
 		return true;
 	}
@@ -157,6 +170,9 @@ public class TMClient {
 		}
 		
 		resetTimer(id);
+		if(!rms.contains(flightClient)){
+			flightClient.start(id);
+		}
 		rms.add(flightClient);
 		return true;
 	}
@@ -169,6 +185,9 @@ public class TMClient {
 		}
 
 		resetTimer(id);
+		if(!rms.contains(roomClient)){
+			roomClient.start(id);
+		}
 		rms.add(roomClient);
 		return true;
 	}
@@ -182,8 +201,16 @@ public class TMClient {
 		
 
 		resetTimer(id);
+		if(!rms.contains(custClient)){
+			custClient.start(id);
+		}
 		rms.add(custClient);
 		return true;
+	}
+
+	public void setLockManager(LockManager lockManager) {
+		this.lockManager = lockManager;
+		
 	}
 	
 	

@@ -636,6 +636,66 @@ public class Client extends client.WSClient {
 				e.printStackTrace();
 			}
 			break;
+		case 23: // Start
+			if(arguments.size() != 1){
+				wrongNumber();
+				break;
+			}
+			System.out.println("Starting new transaction");
+			try{
+				int txnId = proxy.start();
+				resultString = Integer.toString(txnId);
+				System.out.println("Txn ID: " + txnId);
+			} catch (Exception e) {
+				System.out.println("EXCEPTION: ");
+				System.out.println(e.getMessage());
+				e.printStackTrace();	
+			}
+			break;
+		case 24: // Commit
+			if(arguments.size() != 2){
+				wrongNumber();
+				break;
+			}
+			System.out.println("Committing transaction");
+			try{
+				int txnId = getInt(arguments.elementAt(1));
+				proxy.commit(txnId);
+			} catch (Exception e){
+				System.out.println("EXCEPTION: ");
+				System.out.println(e.getMessage());
+				e.printStackTrace();	
+			}
+			break;
+		case 25: // Abort
+			if(arguments.size() != 2){
+				wrongNumber();
+				break;
+			}
+			System.out.println("Committing transaction");
+			try{
+				int txnId = getInt(arguments.elementAt(1));
+				proxy.abort(txnId);
+			} catch (Exception e){
+				System.out.println("EXCEPTION: ");
+				System.out.println(e.getMessage());
+				e.printStackTrace();	
+			}
+			break;
+		case 26: // Shutdown
+			if(arguments.size() != 1){
+				wrongNumber();
+				break;
+			}
+			System.out.println("Committing transaction");
+			try{
+				proxy.shutdown();
+			} catch (Exception e){
+				System.out.println("EXCEPTION: ");
+				System.out.println(e.getMessage());
+				e.printStackTrace();	
+			}
+			break;
 		default:
 			System.out.println("The interface does not support this command.");
 			break;
@@ -700,6 +760,14 @@ public class Client extends client.WSClient {
 			return 21;
 		else if (argument.compareToIgnoreCase("newcustomerid") == 0)
 			return 22;
+		else if (argument.compareToIgnoreCase("start") == 0)
+			return 23;
+		else if (argument.compareToIgnoreCase("commit") == 0)
+			return 24;
+		else if (argument.compareToIgnoreCase("abort") == 0)
+			return 25;
+		else if (argument.compareToIgnoreCase("shutdown") == 0)
+			return 26;
 		else
 			return 666;
 	}

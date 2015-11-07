@@ -10,6 +10,8 @@
     <property name="server-service.host" value="localhost"/>
     <property name="server-service.port" value="8080"/>
     <property name="server.dir" value="${basedir}/src/server"/>
+    <property name="test-main" value="client.Client"/>
+    <property name="client-main" value="client.Client"/>
     <property name="middleware.dir" value="${basedir}/src/middleware/server"/>
 
     <path id="jaxws.classpath">
@@ -223,7 +225,7 @@
     </target>
 
     <target name="client" depends="build-client">
-        <java classname="client.Client">
+        <java classname="${client-main}">
             <classpath>
                 <path refid="jaxws.classpath"/>
                 <pathelement location="${basedir}/build/classes"/>
@@ -237,6 +239,40 @@
     <target name="help">
         <echo message="server:  Builds and deploys the service"/>
         <echo message="client:  Builds and runs the client"/>
+    </target>
+
+
+
+    <!-- TESTING -->
+
+
+    <target name="test" depends="setup">
+        <antcall target="generate-client"/>
+        <antcall target="build-client"/>
+        <antcall target="build-test"/>
+        <antcall target="run-test"/>
+    </target>
+
+    <target name="build-test">
+        <javac
+                fork="true"
+                srcdir="${basedir}/src/test/client"
+                destdir="${basedir}/build/classes"
+                includes="test.client/**">
+            <classpath refid="jaxws.classpath"/>
+        </javac>
+    </target>
+
+    <target name="run-test">
+        <java classname="${test-main}">
+            <classpath>
+                <path refid="jaxws.classpath"/>
+                <pathelement location="${basedir}/build/classes"/>
+            </classpath>
+            <arg value="${middleware-service.name}"/>
+            <arg value="${middleware-service.host}"/>
+            <arg value="${middleware-service.port}"/>
+        </java>
     </target>
     
 </project>

@@ -1,9 +1,5 @@
 package middleware.client;
 
-import java.util.*;
-import java.io.*;
-
-
 import lockmanager.DeadlockException;
 import lockmanager.LockManager;
 import lockmanager.TrxnObj;

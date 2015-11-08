@@ -43,7 +43,6 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 	
 	@Override
 	public boolean shutdown(){
-		//TODO
 		return false;
 	}
 	

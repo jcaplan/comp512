@@ -4,11 +4,13 @@
     <property name="middleware-service.name" value="rmMW"/>
     <property name="middleware-service.host" value="localhost"/>
     <property name="middleware-service.port" value="28080"/>
+    <property name="middleware-shutdown.port" value="28081"/>
 
 
     <property name="server-service.name" value="rm"/>
     <property name="server-service.host" value="localhost"/>
     <property name="server-service.port" value="8080"/>
+    <property name="server-shutdown.port" value="8081"/>
     <property name="server.dir" value="${basedir}/src/server"/>
     <property name="test-main" value="client.Client"/>
     <property name="client-main" value="client.Client"/>
@@ -116,6 +118,7 @@
             <arg value="${server-service.name}"/>
             <arg value="${server-service.port}"/>
             <arg value="${basedir}/webapps"/>
+            <arg value="${server-shutdown.port}"/>
         </java>
     </target>
 
@@ -170,6 +173,7 @@
             <arg value="${middleware-service.name}"/>
             <arg value="${middleware-service.port}"/>
             <arg value="${basedir}/webapps"/>
+            <arg value="${middleware-shutdown.port}"/>
         </java>
     </target>
 

@@ -5,6 +5,8 @@
 
 package middleware.server;
 
+import java.io.PrintStream;
+import java.net.Socket;
 import java.util.*;
 
 import javax.jws.WebService;
@@ -32,6 +34,7 @@ public class Middleware implements ResourceManager {
 	public static final int ROOM_CLIENT = 1;
 	public static final int CAR_CLIENT = 0;
 	public static final int CUSTOMER_CLIENT = 3;
+	private int middleWareShutdownPort = 4;
 
 	private LockManager lockManager;
 
@@ -40,6 +43,8 @@ public class Middleware implements ResourceManager {
 	static volatile String[] clientServiceHost = { "localhost", "localhost",
 			"localhost", "localhost" };
 	static volatile int[] clientPort = { 18081, 18082, 18083, 18084 };
+	
+	static int[] shutdownPort = {18085,18086,18087,18088};
 
 	public static void setParameters(String pclientServiceName,
 			String pclientServiceHost, int pclientPort, int pclientType) {
@@ -123,16 +128,20 @@ public class Middleware implements ResourceManager {
 		Integer carServicePort = (Integer) env.lookup("car-service-port");
 		setCarClient(clientServiceName[CAR_CLIENT], carServiceHost,
 				carServicePort);
+		shutdownPort[CAR_CLIENT] = (Integer) env.lookup("car-shutdown-port");
 
 		String roomServiceHost = (String) env.lookup("room-service-host");
 		Integer roomServicePort = (Integer) env.lookup("room-service-port");
 		setRoomClient(clientServiceName[ROOM_CLIENT], roomServiceHost,
 				roomServicePort);
+		shutdownPort[ROOM_CLIENT] = (Integer) env.lookup("room-shutdown-port");
 
 		String flightServiceHost = (String) env.lookup("flight-service-host");
 		Integer flightServicePort = (Integer) env.lookup("flight-service-port");
 		setFlightClient(clientServiceName[FLIGHT_CLIENT], flightServiceHost,
 				flightServicePort);
+
+		shutdownPort[FLIGHT_CLIENT] = (Integer) env.lookup("flight-shutdown-port");
 
 		String customerServiceHost = (String) env
 				.lookup("customer-service-host");
@@ -140,7 +149,10 @@ public class Middleware implements ResourceManager {
 				.lookup("customer-service-port");
 		setCustomerClient(clientServiceName[CUSTOMER_CLIENT],
 				customerServiceHost, customerServicePort);
-
+		shutdownPort[CUSTOMER_CLIENT] = (Integer) env.lookup("customer-shutdown-port");
+		
+		middleWareShutdownPort = (Integer) env.lookup("middleware-shutdown-port");
+		
 		carClient = getNewCarClient();
 		roomClient = getNewRoomClient();
 		flightClient = getNewFlightClient();
@@ -171,8 +183,27 @@ public class Middleware implements ResourceManager {
 
 	@Override
 	public boolean shutdown() {
-		// TODO Auto-generated method stub
-		return false;
+		try{
+			
+			for(int i = 0; i < NUM_CLIENTS; i++){
+				Socket socket = new Socket(clientServiceHost[i],shutdownPort[i]);
+				PrintStream ps = new PrintStream(socket.getOutputStream());
+				ps.println("SHUTDOWN");
+				socket.close();
+			}
+			
+			//now shutdown self
+			Socket socket = new Socket("localhost",middleWareShutdownPort);
+			PrintStream ps = new PrintStream(socket.getOutputStream());
+			ps.println("SHUTDOWN");
+			socket.close();
+			
+		} catch(Exception e){
+			e.printStackTrace();
+			return false;
+		}
+		
+		return true;
 	}
 
 	// Flight operations //

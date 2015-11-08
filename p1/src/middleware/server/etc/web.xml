@@ -42,7 +42,7 @@ Inc.//DTD Web Application 2.3//EN"
 
     <env-entry>
         <env-entry-name>room-service-host</env-entry-name>
-        <env-entry-value>lab1-14</env-entry-value>
+        <!-- <env-entry-value>lab1-14</env-entry-value> -->
         <env-entry-value>localhost</env-entry-value>
         <env-entry-type>java.lang.String</env-entry-type>
     </env-entry>
@@ -76,4 +76,33 @@ Inc.//DTD Web Application 2.3//EN"
         <env-entry-type>java.lang.Integer</env-entry-type>
     </env-entry>
 
+    <env-entry>
+        <env-entry-name>car-shutdown-port</env-entry-name>
+        <env-entry-value>28085</env-entry-value>
+        <env-entry-type>java.lang.Integer</env-entry-type>
+    </env-entry>
+
+     <env-entry>
+        <env-entry-name>flight-shutdown-port</env-entry-name>
+        <env-entry-value>28086</env-entry-value>
+        <env-entry-type>java.lang.Integer</env-entry-type>
+    </env-entry>
+
+     <env-entry>
+        <env-entry-name>room-shutdown-port</env-entry-name>
+        <env-entry-value>28087</env-entry-value>
+        <env-entry-type>java.lang.Integer</env-entry-type>
+    </env-entry>
+     <env-entry>
+        <env-entry-name>customer-shutdown-port</env-entry-name>
+        <env-entry-value>28088</env-entry-value>
+        <env-entry-type>java.lang.Integer</env-entry-type>
+    </env-entry>
+
+
+     <env-entry>
+        <env-entry-name>middleware-shutdown-port</env-entry-name>
+        <env-entry-value>28089</env-entry-value>
+        <env-entry-type>java.lang.Integer</env-entry-type>
+    </env-entry>
 </web-app>

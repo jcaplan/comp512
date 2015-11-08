@@ -1,5 +1,7 @@
 #!/bin/bash
 
-ant client -Dmiddleware-service.host=localhost -Dclient-main=client.TestDeadlock
-#ant client -Dmiddleware-service.host=localhost -Dclient-main=client.PerformanceTest
+clientMain=client.Client
+# clientMain=client.PerformanceTest
 
+
+ant client -Dmiddleware-service.host=localhost -Dclient-main=${clientMain}

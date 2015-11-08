@@ -1,10 +1,17 @@
 package middleware.client;
 
+import java.io.IOException;
+import java.io.PrintStream;
+import java.net.Socket;
+
 import lockmanager.DeadlockException;
 import lockmanager.LockManager;
 import lockmanager.TrxnObj;
 import middleware.tm.TMClient;
-import server.*;
+import server.Car;
+import server.Customer;
+import server.Flight;
+import server.Room;
 
 public class MWClient extends WSClient {
 	private LockManager lockManager;
@@ -46,15 +53,7 @@ public class MWClient extends WSClient {
 		return result;
 	}
 	
-	public boolean shutdown(){
-		boolean result = false;
-		try {
-			result = proxy.shutdown();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return result;
-	}
+	
 	
 	
 	

@@ -1,7 +1,6 @@
 package client;
 
 
-import test.PerformanceTestThread;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -33,7 +32,7 @@ public class SingleClientPerformanceTest {
         long singleRMResponseTime = pool.submit(singleRMCall).get();
 
         String[] txnTemplateAllRm = {"newcar,TxnId,location,1,10", "newroom,TxnId,location,1,10", "newflight,TxnId,0,1,10",
-                "deletecar,TxnId,location,1", "deleteroom,TxnId,location,1","deleteroom,TxnId,0"};
+                "deletecar,TxnId,location,1", "deleteroom,TxnId,location,1","deleteflight,TxnId,0"};
         Callable<Long> allRMCall = new PerformanceTestThread(new Client(serviceName,serviceHost,servicePort),
                 0L, TOTAL_TRANSACTIONS, txnTemplateAllRm);
         long allRMResponseTime = pool.submit(allRMCall).get();

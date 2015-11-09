@@ -1,5 +1,7 @@
 package client;
 
+import lockmanager.DeadlockException;
+
 import java.util.*;
 import java.io.*;
 public class Client extends client.WSClient {
@@ -73,7 +75,7 @@ public class Client extends client.WSClient {
 		}
 	}
 
-	public void run() throws DeadlockException_Exception, DeadlockException_Exception {
+	public void run() throws DeadlockException_Exception, DeadlockException {
 
 		System.out.println("Client Interface");
 		System.out.println("Type \"help\" for list of supported commands");
@@ -97,7 +99,7 @@ public class Client extends client.WSClient {
 		}
 	}
 
-	public String handleRequest(String command) throws DeadlockException_Exception, DeadlockException_Exception {
+	public String handleRequest(String command) throws DeadlockException_Exception, DeadlockException {
 
 		int id;
 		int flightNumber;

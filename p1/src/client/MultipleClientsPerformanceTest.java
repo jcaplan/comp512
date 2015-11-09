@@ -1,7 +1,6 @@
 package client;
 
 
-import test.PerformanceTestThread;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -16,13 +15,24 @@ import java.util.concurrent.Future;
 
 public class MultipleClientsPerformanceTest {
 
-    private final int TOTAL_TRANSACTIONS = 8*9*5*7; // divisible by any number from 2 to 10
-    private final int MAX_CLIENT_NUMBER = 10;
-    private final int MAX_TPS = 10;
+    private final int TOTAL_TRANSACTIONS = 20;
+    private final int MIN_CLIENT_NUMBER = 10;
+    private final int MAX_CLIENT_NUMBER = 12;
+    private final int MIN_TPS = 300;
+    private final int MAX_TPS = 305;
     private String serviceName, serviceHost;
     private int servicePort;
     private String[] txnTemplateAllRm = {"newcar,TxnId,location,1,10", "newroom,TxnId,location,1,10", "newflight,TxnId,0,1,10",
+            "itinerary,TxnId,customerId,0,location,true,true","newcar,TxnId,location,1,10", "newroom,TxnId,location,1,10", "newflight,TxnId,0,1,10",
+            "itinerary,TxnId,customerId,0,location,true,true","newcar,TxnId,location,1,10", "newroom,TxnId,location,1,10", "newflight,TxnId,0,1,10",
+            "itinerary,TxnId,customerId,0,location,true,true","newcar,TxnId,location,1,10", "newroom,TxnId,location,1,10", "newflight,TxnId,0,1,10",
+            "itinerary,TxnId,customerId,0,location,true,true","newcar,TxnId,location,1,10", "newroom,TxnId,location,1,10", "newflight,TxnId,0,1,10",
+            "itinerary,TxnId,customerId,0,location,true,true","newcar,TxnId,location,1,10", "newroom,TxnId,location,1,10", "newflight,TxnId,0,1,10",
+            "itinerary,TxnId,customerId,0,location,true,true","newcar,TxnId,location,1,10", "newroom,TxnId,location,1,10", "newflight,TxnId,0,1,10",
+            "itinerary,TxnId,customerId,0,location,true,true","newcar,TxnId,location,1,10", "newroom,TxnId,location,1,10", "newflight,TxnId,0,1,10",
+            "itinerary,TxnId,customerId,0,location,true,true","newcar,TxnId,location,1,10", "newroom,TxnId,location,1,10", "newflight,TxnId,0,1,10",
             "itinerary,TxnId,customerId,0,location,true,true"};
+
 
     public static void main(String[] args) throws Exception {
         if (args.length != 3) {
@@ -36,7 +46,7 @@ public class MultipleClientsPerformanceTest {
         int servicePort = Integer.parseInt(args[2]);
 
         MultipleClientsPerformanceTest test = new MultipleClientsPerformanceTest(serviceName, serviceHost, servicePort);
-        test.runTest(test.MAX_CLIENT_NUMBER,test.MAX_TPS);
+        test.runTest();
 
 
     }
@@ -46,22 +56,36 @@ public class MultipleClientsPerformanceTest {
         this.servicePort = servicePort;
     }
 
-    public void runTest(int maxClientNumber, int maxTps) throws Exception {
+    public void runTest() throws Exception {
 
         ExecutorService pool;
         long waitTime;
-        List<List<Long>> resultList = new LinkedList<>();
-        for (int clientNumber = 1;clientNumber <= maxClientNumber; clientNumber++){
+
+        File file =new File("performance_" + System.currentTimeMillis() + ".csv");
+        if(!file.exists()){
+            file.createNewFile();
+        }
+
+        FileWriter fileWriter = new FileWriter(file.getName(),true);
+        BufferedWriter bufferWriter = new BufferedWriter(fileWriter);
+
+        bufferWriter.write(" ,");
+        for (int i=MIN_TPS;i<=MAX_TPS;i++)
+            bufferWriter.write(i + ",");
+        bufferWriter.newLine();
+        bufferWriter.close();
+
+        for (int clientNumber = MIN_CLIENT_NUMBER;clientNumber <= MAX_CLIENT_NUMBER; clientNumber++){
             List<Long> responseList = new LinkedList<>();
 
-            for (int tps = 1;tps <= maxTps;tps++){
+            for (int tps = MIN_TPS;tps <= MAX_TPS;tps++){
                 waitTime = calculateWaitTime(clientNumber,tps);
                 pool = Executors.newFixedThreadPool(clientNumber);
                 List<Future<Long>> futureList = new LinkedList<>();
 
                 for (int i=1;i<=clientNumber;i++){
                     Callable<Long> clientThread = new PerformanceTestThread(new Client(serviceName,serviceHost,servicePort),
-                            waitTime, TOTAL_TRANSACTIONS/clientNumber, txnTemplateAllRm);
+                            waitTime, TOTAL_TRANSACTIONS/clientNumber + 1, txnTemplateAllRm);
                     Future<Long> future = pool.submit(clientThread);
                     futureList.add(future);
                 }
@@ -70,38 +94,25 @@ public class MultipleClientsPerformanceTest {
                 for (Future<Long> future : futureList)
                     sum += future.get();
                 responseList.add(sum/clientNumber);
+                pool.shutdown();
             }
-            resultList.add(responseList);
+            saveDataToFile(responseList, file, clientNumber);
         }
-
-        saveDataToFile(resultList);
     }
 
-    private void saveDataToFile(List<List<Long>> resultList) throws IOException {
-        File file =new File("performance_" + System.currentTimeMillis() + ".csv");
+    private void saveDataToFile(List<Long> resultList, File file, int numberOfClients) throws IOException {
         if(!file.exists()){
             file.createNewFile();
         }
 
-        FileWriter fileWritter = new FileWriter(file.getName(),true);
-        BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
+        FileWriter fileWriter = new FileWriter(file.getName(),true);
+        BufferedWriter bufferWriter = new BufferedWriter(fileWriter);
 
-        bufferWritter.write(" ,");
-        int maxTps = resultList.get(0).size();
-        for (int i=1;i<=maxTps;i++)
-            bufferWritter.write(i + ",");
-        bufferWritter.newLine();
-
-        int numberOfClients = 1;
-        for (List<Long> clientResponse : resultList){
-            bufferWritter.write(numberOfClients + ",");
-            for (Long loadResponse : clientResponse)
-                bufferWritter.write(loadResponse.toString() + ",");
-            bufferWritter.newLine();
-            numberOfClients++;
-        }
-
-        bufferWritter.close();
+        bufferWriter.write(numberOfClients + ",");
+        for (Long loadResponse : resultList)
+            bufferWriter.write(loadResponse.toString() + ",");
+        bufferWriter.newLine();
+        bufferWriter.close();
     }
 
     private long calculateWaitTime(int clientNumber, int tps){

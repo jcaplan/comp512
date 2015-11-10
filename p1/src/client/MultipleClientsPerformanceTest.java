@@ -16,10 +16,12 @@ import java.util.concurrent.Future;
 public class MultipleClientsPerformanceTest {
 
     private final int TOTAL_TRANSACTIONS = 20;
-    private final int MIN_CLIENT_NUMBER = 10;
-    private final int MAX_CLIENT_NUMBER = 12;
-    private final int MIN_TPS = 300;
-    private final int MAX_TPS = 305;
+    private final int MIN_CLIENT_NUMBER = 2;
+    private final int MAX_CLIENT_NUMBER = 122;
+    private final int INCREMENT_CLIENT = 4;
+    private final int MIN_TPS = 1;
+    private final int MAX_TPS = 61;
+    private final int INCREMENT_TPS = 3;
     private String serviceName, serviceHost;
     private int servicePort;
     private String[] txnTemplateAllRm = {"newcar,TxnId,location,1,10", "newroom,TxnId,location,1,10", "newflight,TxnId,0,1,10",
@@ -70,15 +72,15 @@ public class MultipleClientsPerformanceTest {
         BufferedWriter bufferWriter = new BufferedWriter(fileWriter);
 
         bufferWriter.write(" ,");
-        for (int i=MIN_TPS;i<=MAX_TPS;i++)
+        for (int i=MIN_TPS;i<=MAX_TPS;i+=INCREMENT_TPS)
             bufferWriter.write(i + ",");
         bufferWriter.newLine();
         bufferWriter.close();
 
-        for (int clientNumber = MIN_CLIENT_NUMBER;clientNumber <= MAX_CLIENT_NUMBER; clientNumber++){
+        for (int clientNumber = MIN_CLIENT_NUMBER;clientNumber <= MAX_CLIENT_NUMBER; clientNumber+=INCREMENT_CLIENT){
             List<Long> responseList = new LinkedList<>();
 
-            for (int tps = MIN_TPS;tps <= MAX_TPS;tps++){
+            for (int tps = MIN_TPS;tps <= MAX_TPS;tps+=INCREMENT_TPS){
                 waitTime = calculateWaitTime(clientNumber,tps);
                 pool = Executors.newFixedThreadPool(clientNumber);
                 List<Future<Long>> futureList = new LinkedList<>();

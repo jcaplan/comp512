@@ -96,7 +96,7 @@ public class TMServer {
 	}
 	
 	public synchronized boolean abortTxn(int id, RMHashtable table){
-		System.out.println("TMServer::abort txn" + id);
+		System.out.println(">>>>>>>>>>>>>>>>>TMServer::abort txn" + id);
 		WriteList writeList = txnWriteList.get(id);
 		
 		if(writeList == null){
@@ -109,6 +109,7 @@ public class TMServer {
 			if(map.get(key)!= null){
 				table.put(key, map.get(key));
 			} else {
+				System.out.println("!!!!!!>>>>>>>!!!!!!TXN" + id + " removes " + key);
 				table.remove(key);
 			}
 			

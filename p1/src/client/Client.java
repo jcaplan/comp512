@@ -714,7 +714,7 @@ public class Client extends client.WSClient {
 				wrongNumber();
 				break;
 			}
-			System.out.println("Committing transaction");
+			System.out.println("Aborting transaction");
 			try{
 				int txnId = getInt(arguments.elementAt(1));
 				proxy.abort(txnId);
@@ -731,7 +731,7 @@ public class Client extends client.WSClient {
 				wrongNumber();
 				break;
 			}
-			System.out.println("Committing transaction");
+			System.out.println("shutting down");
 			try{
 				proxy.shutdown();
 			} catch (Exception e) {

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 clientMain=client.Client
-# clientMain=client.PerformanceTest
+#clientMain=client.MultipleClientsPerformanceTest
 
 
 ant client -Dmiddleware-service.host=localhost -Dclient-main=${clientMain}

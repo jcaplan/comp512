@@ -99,7 +99,7 @@ public class Client extends client.WSClient {
 		}
 	}
 
-	public String handleRequest(String command) throws DeadlockException_Exception, DeadlockException {
+	public String handleRequest(String command) throws DeadlockException_Exception{
 
 		int id;
 		int flightNumber;

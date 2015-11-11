@@ -71,7 +71,9 @@ public class MWClient extends WSClient {
 	public boolean addFlight(int id, int flightNumber, int numSeats,
 			int flightPrice) throws DeadlockException {
 		boolean flightStatus = false;
-		TMClient.getInstance().enlistFlightRM(id);
+		if(!TMClient.getInstance().enlistFlightRM(id)){
+			return false;
+		}
 		try {
 			lockManager.Lock(id, Flight.getKey(flightNumber), TrxnObj.WRITE);
 		} catch (DeadlockException e) {
@@ -90,7 +92,9 @@ public class MWClient extends WSClient {
 
 	public boolean deleteFlight(int id, int flightNumber) throws DeadlockException {
 		boolean flightStatus = false;
-		TMClient.getInstance().enlistFlightRM(id);
+		if(!TMClient.getInstance().enlistFlightRM(id)){
+			return false;
+		}
 		try {
 			lockManager.Lock(id, Flight.getKey(flightNumber), TrxnObj.WRITE);
 		} catch (DeadlockException e) {
@@ -108,7 +112,9 @@ public class MWClient extends WSClient {
 
 	public int queryFlight(int id, int flightNumber) throws DeadlockException {
 		int flightStatus = 0;
-		TMClient.getInstance().enlistFlightRM(id);
+		if(!TMClient.getInstance().enlistFlightRM(id)){
+			return -1;
+		}
 		try {
 			lockManager.Lock(id, Flight.getKey(flightNumber), TrxnObj.READ);
 		} catch (DeadlockException e) {
@@ -126,7 +132,9 @@ public class MWClient extends WSClient {
 
 	public int queryFlightPrice(int id, int flightNumber) throws DeadlockException {
 		int flightStatus = 0;
-		TMClient.getInstance().enlistFlightRM(id);
+		if(!TMClient.getInstance().enlistFlightRM(id)){
+			return -1;
+		}
 		try {
 			lockManager.Lock(id, Flight.getKey(flightNumber), TrxnObj.READ);
 		} catch (DeadlockException e) {
@@ -144,7 +152,9 @@ public class MWClient extends WSClient {
 
 	public boolean addCars(int id, String location, int numCars, int carPrice) throws DeadlockException {
 		boolean carStatus = false;
-		TMClient.getInstance().enlistCarRM(id);
+		if(!TMClient.getInstance().enlistCarRM(id)){
+			return false;
+		}
 		try {
 			lockManager.Lock(id, Car.getKey(location), TrxnObj.WRITE);
 		} catch (DeadlockException e) {
@@ -162,7 +172,9 @@ public class MWClient extends WSClient {
 
 	public boolean deleteCars(int id, String location) throws DeadlockException {
 		boolean carStatus = false;
-		TMClient.getInstance().enlistCarRM(id);
+		if(!TMClient.getInstance().enlistCarRM(id)){
+			return false;
+		}
 		try {
 			lockManager.Lock(id, Car.getKey(location), TrxnObj.WRITE);
 		} catch (DeadlockException e) {
@@ -180,7 +192,9 @@ public class MWClient extends WSClient {
 
 	public int queryCars(int id, String location) throws DeadlockException {
 		int carStatus = 0;
-		TMClient.getInstance().enlistCarRM(id);
+		if(!TMClient.getInstance().enlistCarRM(id)){
+			return -1;
+		}
 		try {
 			lockManager.Lock(id, Car.getKey(location), TrxnObj.READ);
 		} catch (DeadlockException e) {
@@ -198,7 +212,9 @@ public class MWClient extends WSClient {
 
 	public int queryCarsPrice(int id, String location) throws DeadlockException {
 		int carStatus = 0;
-		TMClient.getInstance().enlistCarRM(id);
+		if(!TMClient.getInstance().enlistCarRM(id)){
+			return -1;
+		}
 		try {
 			lockManager.Lock(id, Car.getKey(location), TrxnObj.WRITE);
 		} catch (DeadlockException e) {
@@ -216,7 +232,9 @@ public class MWClient extends WSClient {
 
 	public boolean addRooms(int id, String location, int numRooms, int roomPrice) throws DeadlockException {
 		boolean roomStatus = false;
-		TMClient.getInstance().enlistRoomRM(id);
+		if(!TMClient.getInstance().enlistRoomRM(id)){
+			return false;
+		}
 		try {
 			lockManager.Lock(id, Room.getKey(location), TrxnObj.WRITE);
 		} catch (DeadlockException e) {
@@ -234,7 +252,9 @@ public class MWClient extends WSClient {
 
 	public boolean deleteRooms(int id, String location) throws DeadlockException {
 		boolean roomStatus = false;
-		TMClient.getInstance().enlistRoomRM(id);
+		if(!TMClient.getInstance().enlistRoomRM(id)){
+			return false;
+		}
 		try {
 			lockManager.Lock(id, Room.getKey(location), TrxnObj.WRITE);
 		} catch (DeadlockException e) {
@@ -252,7 +272,9 @@ public class MWClient extends WSClient {
 
 	public int queryRooms(int id, String location) throws DeadlockException {
 		int roomStatus = 0;
-		TMClient.getInstance().enlistRoomRM(id);
+		if(!TMClient.getInstance().enlistRoomRM(id)){
+			return -1;
+		}
 		try {
 			lockManager.Lock(id, Room.getKey(location), TrxnObj.READ);
 		} catch (DeadlockException e) {
@@ -270,7 +292,9 @@ public class MWClient extends WSClient {
 
 	public int queryRoomsPrice(int id, String location) throws DeadlockException {
 		int roomStatus = 0;
-		TMClient.getInstance().enlistRoomRM(id);
+		if(!TMClient.getInstance().enlistRoomRM(id)){
+			return -1;
+		}
 		try {
 			lockManager.Lock(id, Room.getKey(location), TrxnObj.READ);
 		} catch (DeadlockException e) {
@@ -288,7 +312,9 @@ public class MWClient extends WSClient {
 
 	public int newCustomer(int id) {
 		int customerID = 0;
-		TMClient.getInstance().enlistCustomerRM(id);
+		if(!TMClient.getInstance().enlistCustomerRM(id)){
+			return -1;
+		}
 		try {
 			customerID = proxy.newCustomer(id);
 		} catch (Exception e) {
@@ -297,10 +323,12 @@ public class MWClient extends WSClient {
 		return customerID;
 	}
 
+	//This method is weird... ignore for now
 	public boolean newCustomerId(int id, int customerId) {
 		boolean customerStatus = false;
+
+		TMClient.getInstance().enlistCustomerRM(id);
 		try {
-			TMClient.getInstance().enlistCustomerRM(id);
 			customerStatus = proxy.newCustomerId(id, customerId);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -310,7 +338,9 @@ public class MWClient extends WSClient {
 
 	public String queryCustomerInfo(int id, int customerId) throws DeadlockException {
 		String customerStatus = "";
-		TMClient.getInstance().enlistCustomerRM(id);
+		if(!TMClient.getInstance().enlistCustomerRM(id)){
+			return "txn id not found";
+		}
 		try {
 			lockManager.Lock(id, Customer.getKey(customerId), TrxnObj.READ);
 		} catch (DeadlockException e) {
@@ -329,7 +359,9 @@ public class MWClient extends WSClient {
 	public boolean reserveCustomer(int id, int customerId, String key,
 			String location, int price) throws DeadlockException {
 		boolean customerStatus = false;
-		TMClient.getInstance().enlistCustomerRM(id);
+		if(!TMClient.getInstance().enlistCustomerRM(id)){
+			return customerStatus;
+		}
 		try {
 			lockManager.Lock(id, Customer.getKey(customerId), TrxnObj.WRITE);
 		} catch (DeadlockException e) {
@@ -353,7 +385,9 @@ public class MWClient extends WSClient {
 	// Add flight reservation to this customer.
 	public boolean reserveFlight(int id, int customerId, int flightNumber) throws DeadlockException {
 		boolean itemStatus = false;
-		TMClient.getInstance().enlistFlightRM(id);
+		if(!TMClient.getInstance().enlistFlightRM(id)){
+			return itemStatus;
+		}
         try {
             lockManager.Lock(id, Flight.getKey(flightNumber), TrxnObj.WRITE);
         } catch (DeadlockException e) {
@@ -372,7 +406,9 @@ public class MWClient extends WSClient {
 	// Add car reservation to this customer.
 	public boolean reserveCar(int id, int customerId, String location) throws DeadlockException {
 		boolean itemStatus = false;
-		TMClient.getInstance().enlistCarRM(id);
+		if(!TMClient.getInstance().enlistCarRM(id)){
+			return itemStatus;
+		}
         try {
             lockManager.Lock(id, Car.getKey(location), TrxnObj.WRITE);
         } catch (DeadlockException e) {
@@ -391,7 +427,9 @@ public class MWClient extends WSClient {
 	// Add room reservation to this customer.
 	public boolean reserveRoom(int id, int customerId, String location) throws DeadlockException {
 		boolean itemStatus = false;
-		TMClient.getInstance().enlistRoomRM(id);
+		if(!TMClient.getInstance().enlistRoomRM(id)){
+			return false;
+		}
         try {
             lockManager.Lock(id, Room.getKey(location), TrxnObj.WRITE);
         } catch (DeadlockException e) {
@@ -409,7 +447,9 @@ public class MWClient extends WSClient {
 
 	public boolean cancelReserveCar(int id, int customerId, String location) throws DeadlockException {
 		boolean itemStatus = false;
-		TMClient.getInstance().enlistCarRM(id);
+		if(!TMClient.getInstance().enlistCarRM(id)){
+			return false;
+		}
         try {
             lockManager.Lock(id, Car.getKey(location), TrxnObj.WRITE);
         } catch (DeadlockException e) {
@@ -428,7 +468,9 @@ public class MWClient extends WSClient {
 
 	public boolean cancelReserveRoom(int id, int customerId, String location) throws DeadlockException {
 		boolean itemStatus = false;
-		TMClient.getInstance().enlistRoomRM(id);
+		if(!TMClient.getInstance().enlistRoomRM(id)){
+			return false;
+		}
         try {
             lockManager.Lock(id, Room.getKey(location), TrxnObj.WRITE);
         } catch (DeadlockException e) {
@@ -447,7 +489,9 @@ public class MWClient extends WSClient {
 
 	public boolean cancelReserveFlight(int id, int customerId, int flightNumber) throws DeadlockException {
 		boolean itemStatus = false;
-		TMClient.getInstance().enlistFlightRM(id);
+		if(!TMClient.getInstance().enlistFlightRM(id)){
+			return false;
+		}
         try {
             lockManager.Lock(id, Flight.getKey(flightNumber), TrxnObj.WRITE);
         } catch (DeadlockException e) {
@@ -466,7 +510,9 @@ public class MWClient extends WSClient {
 
 	public boolean deleteCustomer(int id, int customerId) throws DeadlockException {
 		boolean itemStatus = false;
-		TMClient.getInstance().enlistCustomerRM(id);
+		if(!TMClient.getInstance().enlistCustomerRM(id)){
+			return false;
+		}
         try {
             lockManager.Lock(id, Customer.getKey(customerId), TrxnObj.WRITE);
         } catch (DeadlockException e) {

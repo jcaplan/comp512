@@ -108,7 +108,6 @@ public class LockManager
     
     // remove all locks for this transaction in the lock table.
     public boolean  UnlockAll(int xid) {
-
         // if any parameter is invalid, then return false
         if (xid < 0) {
             return false;
@@ -136,6 +135,7 @@ public class LockManager
                     // get all the transactions waiting on this dataObj
                     waitVector = this.waitTable.elements(dataObj);
                     int waitSize = waitVector.size();
+                    System.out.println("WAIT VECTER SIZE:" + waitSize);
                     for (int j = 0; j < waitSize; j++) {
                         waitObj = (WaitObj) waitVector.elementAt(j);
                         if (waitObj.getLockType() == LockManager.WRITE) {
@@ -146,7 +146,8 @@ public class LockManager
                                 
                                 // remove interrupted thread from waitTable only if no
                                 // other transaction has locked this data item
-                                if (vect1.size () == 0) {
+                                System.out.println("XID OF WAITOBJ:" + ((DataObj) vect1.elementAt(0)).getXId());
+                                if (vect1.size () == 0 || (vect1.size() ==1 && ((DataObj)vect1.elementAt(0)).getXId() == waitObj.getXId())) {
                                     this.waitTable.remove(waitObj);     
                                     
                                     try {

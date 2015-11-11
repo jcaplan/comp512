@@ -1,0 +1,46 @@
+testbed description:
+a)
+Client:
+single client on computer A
+Middleware:
+on computer B
+3 RMs:
+on computer C
+
+Transaction type:
+1.txn involving only one RM with same pattern :{"newcar,TxnId,location,1,10","newcar,TxnId,location,1,10","newcar,TxnId,location,1,10","deletecar,TxnId,location","deletecar,TxnId,location","deletecar,TxnId,location"}
+2.txn involing all 3 RMs:
+{"newcar,TxnId,location,1,10", "newroom,TxnId,location,1,10", "newflight,TxnId,0,1,10","deletecar,TxnId,location", "deleteroom,TxnId,location","deleteflight,TxnId,0"}
+
+Measurement techniques:
+Client first repeatedly execute txn of type 1 for 5000 times, adding up time spent between starting & commiting of each txn, then takes the average as response time.
+Then it repeats the procedure for txn of type 2.
+
+Observation:
+Typical response time for transaction using single RM is between 1/5 to 1/8 lower than that of txn using all RMs.
+
+b)
+Clients: 
+threads that concurrently executed on the computer A
+Middleware:
+on computer B
+3 RMs:
+on computer C
+
+Measurement techniques:
+For each #client and tps : each thread submit a txn every (1000.0/tps)*clientNumber milliseconds, with a random variation between +/-30% 
+and measures time that elapses from starting the txn and getting the txn commited. 
+Any time spent in retrying an aborted txn due to deadlock is counted towards the response time of that txn. 
+Let N be total number of txns submitted by all clients in total. Each client submits around N/#client txns in total and calculate the average response time as its response time.
+For fixed #client & tps, the final response time collected by the test is the average over all response time over all clients.
+
+Transaction type:
+Since the goal of part b) is to study the effect of tps & #client on response time, we keep using the same txn type of repeated pattern: 
+{addCar,addRoom,addflight,reserveItinerary}.Since this type of txn writes to all RMs, it makes it possible to observe deadlock in the system when #client gets high.
+
+Test range:
+#client:
+min:2,max:86,increment:4
+tps:
+min:1,max:61,increment:3
+

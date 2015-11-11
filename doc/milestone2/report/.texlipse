@@ -1,0 +1,14 @@
+#TeXlipse project settings
+#Thu Oct 01 14:29:26 EDT 2015
+markTmpDer=true
+builderNum=2
+outputDir=
+makeIndSty=
+bibrefDir=
+outputFormat=pdf
+tempDir=tmp
+mainTexFile=milestone1.tex
+outputFile=milestone1.pdf
+langSpell=en
+markDer=true
+srcDir=

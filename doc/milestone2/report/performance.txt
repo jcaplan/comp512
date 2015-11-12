@@ -1,0 +1,18 @@
+Performance & Analysis 
+a)
+Observation:
+Response time of txns involving single RM is about 1/8 to 1/5 lower than that of txns involving all RMs(e.g. the former one is 42ms and the latter one is 48ms).
+Explanation:
+When doing txns involving all RMs, the middlware need to open separate network connections for each one of the RMs while the txns using only one RM could reuse just one connection.
+Therefore it takes more time to complete txns using all RMs.
+
+b)
+1.When #client <=18, response time increases steadily with increasing #tps, before reaching a saturated level at around 31 #tps. When #clients >=22, there’s no longer obvious relationship between #tps & the response time.
+2.Response time goes up with #clients in the system(most evident between 2 and 42 clients), but the rate of increasing gradually goes down.
+3.When #clients exceeds 70, some spikes emerge in the response time graph
+
+Explanations:
+When there are relatively few clients(<=18), increasing the frequency of submission makes it more likely to have more txns reaching the middleware concurrently and thus the load of middleware goes up, so does the response time.
+When #clients becomes larger(>18), the number of concurent request reaching the middleware shoots up as well as the load at middleware, and this outweigh the effect of #tcp, so the relationship between #tps & the response time becomes a lot less obvious.
+When #clients goes above 70, the response time not only goes up but also becomes less stable(a lot of spikes) , because the large number of concurrent txns make it easier to have deadlock and hence causing blocked txns in the system from time to time. 
+

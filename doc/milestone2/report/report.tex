@@ -1,0 +1,254 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Programming/Coding Assignment
+% LaTeX Template
+%
+% This template has been downloaded from:
+% http://www.latextemplates.com
+%
+% Original author:
+% Ted Pavlic (http://www.tedpavlic.com)
+%
+% Note:
+% The \lipsum[#] commands throughout this template generate dummy text
+% to fill the template out. These commands should all be removed when 
+% writing assignment content.
+%
+% This template uses a Perl script as an example snippet of code, most other
+% languages are also usable. Configure them in the "CODE INCLUSION 
+% CONFIGURATION" section.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass{article}
+
+\usepackage{fancyhdr} % Required for custom headers
+\usepackage{lastpage} % Required to determine the last page for the footer
+\usepackage{extramarks} % Required for headers and footers
+\usepackage[usenames,dvipsnames]{color} % Required for custom colors
+\usepackage{graphicx} % Required to insert images
+\usepackage{listings} % Required for insertion of code
+\usepackage{courier} % Required for the courier font
+\usepackage{lipsum} % Used for inserting dummy 'Lorem ipsum' text into the template
+\usepackage{algorithm2e}
+
+\usepackage{paralist}
+% Margins
+\topmargin=-0.45in
+\evensidemargin=0in
+\oddsidemargin=0in
+\textwidth=6.5in
+\textheight=9.0in
+\headsep=0.25in
+
+\linespread{1.1} % Line spacing
+
+% Set up the header and footer
+\pagestyle{fancy}
+\lhead{\hmwkAuthorNameShort} % Top left header
+\chead{\hmwkClass:\ \hmwkTitle} % Top center head
+\rhead{} % Top right header
+\lfoot{} % Bottom left footer
+\cfoot{} % Bottom center footer
+\rfoot{Page\ \thepage\ of\ \protect\pageref{LastPage}} % Bottom right footer
+\renewcommand\headrulewidth{0.4pt} % Size of the header rule
+\renewcommand\footrulewidth{0.4pt} % Size of the footer rule
+
+%\setlength\parindent{0pt} % Removes all indentation from paragraphs
+
+%----------------------------------------------------------------------------------------
+%	CODE INCLUSION CONFIGURATION
+%----------------------------------------------------------------------------------------
+
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+\definecolor{mylisting}{rgb}{1,0.98,0.756}
+\lstset{ %
+  backgroundcolor=\color{mylisting},   % choose the background color; you must add \usepackage{color} or \usepackage{xcolor}
+  basicstyle=\footnotesize\ttfamily,        % the size of the fonts that are used for the code
+  breakatwhitespace=false,         % sets if automatic breaks should only happen at whitespace
+  breaklines=true,                 % sets automatic line breaking
+  captionpos=b,                    % sets the caption-position to bottom
+  commentstyle=\color{mygreen},    % comment style
+  deletekeywords={...},            % if you want to delete keywords from the given language
+  escapeinside={\%*}{*)},          % if you want to add LaTeX within your code
+  extendedchars=true,              % lets you use non-ASCII characters; for 8-bits encodings only, does not work with UTF-8
+  frame=single,                    % adds a frame around the code
+  keepspaces=true,                 % keeps spaces in text, useful for keeping indentation of code (possibly needs columns=flexible)
+  keywordstyle=\color{blue},       % keyword style
+  language=Java,                 % the language of the code
+  morekeywords={*,...},            % if you want to add more keywords to the set
+  numbers=left,                    % where to put the line-numbers; possible values are (none, left, right)
+  numbersep=5pt,                   % how far the line-numbers are from the code
+  numberstyle=\tiny\color{mygray}, % the style that is used for the line-numbers
+  rulecolor=\color{black},         % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. comments (green here))
+  showspaces=false,                % show spaces everywhere adding particular underscores; it overrides 'showstringspaces'
+  showstringspaces=false,          % underline spaces within strings only
+  showtabs=false,                  % show tabs within strings adding particular underscores
+  stepnumber=2,                    % the step between two line-numbers. If it's 1, each line will be numbered
+  stringstyle=\color{mymauve},     % string literal style
+  tabsize=2,                       % sets default tabsize to 2 spaces
+  title=\lstname ,                  % show the filename of files included with \lstinputlisting; also try caption instead of title
+  moredelim=**[is][\color{red}]{@}{@},
+}
+
+\newcommand{\addfigure}[4]{
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[scale=#1]{figures/#2}
+	\caption{#3}
+	\label{#4}
+\end{figure}
+
+}
+
+
+\newcommand{\includecode}[3]{\lstinputlisting[caption=#2,captionpos=t,language=Java,label=#3]{code/#1}}
+
+
+%----------------------------------------------------------------------------------------
+%	NAME AND CLASS SECTION
+%----------------------------------------------------------------------------------------
+
+\newcommand{\hmwkTitle}{Milestone\ \#2} % Assignment title
+\newcommand{\hmwkDueDate}{\today} % Due date
+\newcommand{\hmwkClass}{COMP\ 512} % Course/class
+\newcommand{\hmwkAuthorName}{Jonah Caplan, Haitong Yang} % Your name
+\newcommand{\hmwkAuthorNameShort}{Caplan, Yang} % Your name
+
+%----------------------------------------------------------------------------------------
+%	TITLE PAGE
+%----------------------------------------------------------------------------------------
+
+\title{
+\vspace{2in}
+\textmd{\textbf{\hmwkClass:\ \hmwkTitle}}\\
+\vspace{3in}
+}
+
+\author{\textbf{\hmwkAuthorName}}
+\date{} % Insert date here if you want it to appear below your name
+
+
+
+%----------------------------------------------------------------------------------------
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+\newpage
+\setcounter{page}{1}
+
+%------------------------------------------------------------------------------------
+% \section{Deliverables} 
+% The following deliverables are required for the first project milestone:
+% \begin{description}
+% \item[Complete lock manager] \hfill \\ Lock manager is missing capability of converting read locks to write locks.
+% \item[Implement transactions] \hfill \\ Use strict two phase locking to implement distributed transactions.
+% \item[TTL] \hfill \\ Implement a time-to-live mechanism to ensure that clients cannot execute transactions indefinitely.
+% \item[Graceful Shutdown] \hfill \\ Ensure that the system can shut down without any errors.
+% \item[Performance analysis] \hfill \\ Measure response time of a single client and many clients.
+
+% \end{description}
+
+\section{System Architecture}
+
+We chose to distribute the features of the transaction manager (TM) between the resource managers (RMs) and the middleware (MW) while keeping the lock manager (LM) entirely in the MW node. 
+Figure~\ref{f:system} shows the basic architecture. 
+The responsibilities of the TM that are included on the MW node are: keeping track of the timer for each transaction, issuing new transaction IDs, keeping track of the RMs enlisted by each transaction, and forwarding abort and commit commands to the appropriate RMs when necessary. 
+On the RM side, the transaction manager maintains a table for each transaction of the value of a data item prior to being overwritten by that transaction. 
+The table can be used to restore the previous value in case of an aborted transaction. 
+The lock manager (LM) is also centralized and located in the MW node. 
+
+
+\addfigure{0.7}{system.pdf}{Basic system architecture}{f:system}
+
+Figure~\ref{f:sequence} shows the basic flow between objects on the same node and between different nodes.
+A client starts a transaction, executes a read followed by a write, and then commits the transaction. 
+The \texttt{enlist()} method is always called from the MW node as it actually serves several purposes: check if the transaction ID is valid, reset the transaction timer, and add the RM if necessary. 
+The TM is responsible for checking if the MW has already called enlist for that transaction. 
+The \texttt{start()} method is only forwarded to the RM once it is enlisted in the transaction.
+
+\addfigure{0.65}{sequence.pdf}{A client starts a transaction, executes a read followed by a write, and then commits the transaction.}{f:sequence}
+
+\section{Time-to-Live Implementation}
+
+TTL was implemented according with Algorithm~\ref{a:ttl}. Some race conditions were caught in testing when the timer expired at the same time as deadlock occurred. Both threads would possibly call \texttt{abort()}.
+
+\SetKwFor{Upon}{upon}{do}{end}
+\begin{algorithm}
+%  \KwData{this text}
+%  \KwResult{how to write algorithm with \LaTeX2e }
+ \Upon{initialization}{
+ 	Timer t\;
+ 	List of TimerTask tList\;
+ } 
+ \Upon{Start(txnID)}{
+  add new TimerTask for txnID to tList and schedule task\;
+  }
+  \Upon{enlist(txnId)}{
+  cancel previous task\;
+  schedule new task\;
+  }
+  \Upon{commit(txnId) or abort(txnId)}{
+  cancel previous task\;
+  remove txnId from list\;
+  }
+  \Upon{timerExpires(txnId)}{
+  	abort(txnId)\;
+  }
+ 
+ \caption{TTL algorithm.}
+ \label{a:ttl}
+ \end{algorithm}
+
+\section{Testing}
+We used JUnit to thoroughly test the TM on the RM node. Many corner cases were checked for correct operation. Testing the middleware is more difficult with JUnit because it requires starting the tomcat server. We ultimately had to give up on a more structured testing approach.
+ 
+Our demo this afternoon revealed a problem with the lock manager. The LM did not work properly when two transactions had read locks for an item, one transaction was waiting to convert to a write lock, and the first transaction released its read lock when committing. We just fell a bit short on the testing of the lock manager. We did diagnose and fix the problem albeit a bit too late. We have further realized two things: that the provided code is unfortunately messy and should probably have been implemented (possibly by us) with a state machine, and that we were not as clear on how it behaved or even how it was \textit{supposed} to behave. 
+%For instance, are all new read lock requests blocked out after one thread is waiting on a write lock? 
+
+
+\section{Performance}
+
+For all experiments, the clients are located on one computer, the middleware on a second computer, and all the RMs are located on a third computer.
+
+\subsection{Single client response time}
+
+The transaction for a single RM consisted of issuing the \textit{newcar} and \textit{deletecar} commands three times each. The transaction for all three RMs consisted of creating and deleting each type of resource on each RM. We measured 5000 transactions and found that the single RM transaction took an average of 42ms while the multiple RM transaction took 48ms. 
+
+The computations on all resources are fairly lightweight. We did not attempt to measure them explicitly for this assignment. However, since the test consists of writing values to a hash table it seems fairly probable that all that all the computations and thread switching overhead accounts for at most a dozen milliseconds. It would seem like the overhead is largely due to the network. However, there is one overhead that is not neglected when calculating response time which is not trivial: printing log information directly to the terminal can cause create sizable execution overhead. Unfortunately, the code we have been provided does not have adequate logging facilities to quickly change the \texttt{PrintStream} destination to a file or to completely disable logging altogether. The inclusion of logging (essentially a high overhead debug mode) while doing profiling may distort the results.
+
+\subsection{Multiple client response time}
+
+Each client in the experiment commits a transaction at regular intervals $t$ according to Eqn.~\ref{e:period} where $N$ is the number of clients and $r \in [-1,1]$ is a random number. Any time spent in retrying an aborting transactions due to deadlock is counted towards the response time of that transaction. All clients are competing for the same resources in this experiment. 
+
+\begin{equation}
+\left(\frac{1000}{tps}\cdot N\right) \cdot(1 + 0.3r)
+\label{e:period}
+\end{equation}
+
+Figure~\ref{f:results} shows the performance results for the multi-client system. The system gradually approaches saturation when number of clients is less than 22. The saturation point appears at roughly 30 tps. For 22 clients or more (we tested for more but have omitted the results from the graph), the system is immediately saturated regardless of the number of clients. As expected, the response time generally increases as the number of clients in the system increases. Once the system is fully overloaded, then the saturation point stops increasing. In fact, the 22 client system appears to outperform the 18 client system (probably due to some strange timing in the 18 client trial).
+
+Figure~\ref{f:clients} shows the same data but now with the number of transactions per second held constant and the number of clients increasing. We see that once 25 clients are reached the number of transactions per second is no longer relevant, implying that the system is completely overloaded. 
+
+There are two main explanations for these performance figures. First, the middleware eventually becomes a bottleneck for the system once too many transactions arrive at the same time. Second, since the clients are competing for the same resources it forces a largely serial execution at the system level. Both performance figures show that the system is saturated in the 25-30 transaction range (either 30 clients submitting 1 transaction or 1 client submitting 30 transactions). However, that the response time for 1 client submitting 30 transactions is so much lower while the overall network traffic remains constant, implies that the overhead of context switching in the middleware is considerable.
+
+
+Another minor point to note in both figures is that a single client performs \textit{worse} on average at 1tps compared to 4tps. One explanation could be that there is some implementation detail of the underlying web services that creates an overhead after a certain short amount of time has passed (e.g. releasing a thread of more than a second elapses). It is difficult to say without knowing more about the web services.
+\addfigure{0.5}{performance.pdf}{Average response time as transactions per second increases while holding the number of clients constant.}{f:results}
+	
+\addfigure{0.5}{clients.pdf}{Average response time as number of clients increase while holding the number of transactions per second constant.}{f:clients}
+
+
+
+
+
+
+\end{document}

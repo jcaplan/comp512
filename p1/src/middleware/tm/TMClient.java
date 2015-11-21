@@ -15,7 +15,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import lockmanager.LockManager;
-import middleware.client.MWClient;
 import middleware.client.MWClientInterface;
 
 public class TMClient {
@@ -28,7 +27,7 @@ public class TMClient {
 	
 	private static TMClient theInstance;
 	private static Object lock = new Object();
-	
+	private int txnsActive = 0;
 
 	MWClientInterface carClient;
 	MWClientInterface flightClient;
@@ -69,6 +68,7 @@ public class TMClient {
 	public synchronized int start(){
 		int id;
 		synchronized(lock){
+			txnsActive++;
 			id = idCounter++;
 			rmList.put(id, new HashSet<>());
 			TimerTask abortTxn = new AbortTxn(id);
@@ -119,11 +119,7 @@ public class TMClient {
 			System.out.println("TMCLIENT:: final vote result: yes");
 			for(MWClientInterface rm : rms){
 				rm.commit(id);
-				rmList.remove(id);
-				timerList.get(id).cancel();
-				timerList.remove(id);
-				lockManager.UnlockAll(id);
-				
+				removeTxn(id);			
 			}
 		} else {
 			abort(id);
@@ -132,6 +128,17 @@ public class TMClient {
 		return voteResult;
 	}
 	
+	private void removeTxn(int id) {
+		txnsActive--;
+		rmList.remove(id);
+		TimerTask t = timerList.get(id);
+		if(t != null){
+			t.cancel();
+			timerList.remove(id);
+		}
+		lockManager.UnlockAll(id);
+	}
+
 	private boolean prepareCommit(int id, HashSet<MWClientInterface> rms) {
 		List<FutureTask<Boolean>> taskList = new ArrayList<>();
 
@@ -142,7 +149,7 @@ public class TMClient {
 			FutureTask<Boolean> vote = new FutureTask<Boolean>(new Callable<Boolean>() {
 				@Override
 				public Boolean call() {
-					return rm.requestVote();
+					return rm.requestVote(id);
 				}
 			});
 			taskList.add(vote);
@@ -157,6 +164,7 @@ public class TMClient {
 			} else {
 				try {
 					result &= task.get(COMMIT_TIMEOUT_SECONDS,TimeUnit.SECONDS);
+					System.out.println("TM receives new result: " + (result ? "YES" : "NO"));
 				} catch (InterruptedException | ExecutionException 
 						| TimeoutException e) {
 					result = false;
@@ -181,13 +189,7 @@ public class TMClient {
 		for(MWClientInterface rm: rms){
 			rm.abort(id);
 		}
-		rmList.remove(id);
-		TimerTask t = timerList.get(id);
-		if(t != null){
-			t.cancel();
-			timerList.remove(id);
-		}
-		lockManager.UnlockAll(id);
+		removeTxn(id);
 		return false;
 	}
 	
@@ -287,10 +289,12 @@ public class TMClient {
 		theInstance.flightClient = null;
 		theInstance.roomClient = null;
 		theInstance.custClient = null;
-		theInstance.objectCount = 0;
-		theInstance.idCounter = 1;
 		theInstance.lockManager = null;
 		theInstance  = null;
+	}
+
+	public boolean txnsActive() {
+		return txnsActive == 0;
 	}
 	
 }

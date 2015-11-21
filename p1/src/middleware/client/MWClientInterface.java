@@ -60,6 +60,6 @@ public interface MWClientInterface {
 	
 	public boolean deleteCustomer(int id, int customerId) throws DeadlockException;
 	
-	public boolean requestVote();
+	public boolean requestVote(int id);
 	
 }

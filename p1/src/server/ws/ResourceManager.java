@@ -172,5 +172,8 @@ public interface ResourceManager {
     
     @WebMethod 
     public boolean shutdown();
+
+    @WebMethod
+	boolean requestVote(int id);
     			
 }

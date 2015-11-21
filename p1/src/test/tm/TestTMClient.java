@@ -84,9 +84,28 @@ public class TestTMClient {
 		String location = "MONTREAL";
 		int numCars = 63;
 		int carPrice = 101;
+		
 		carClient.addCars(id, location, numCars, carPrice);
 		
 		boolean result = tm.commit(id);
+		
+		
+		id = tm.start();
+		carPrice = 102;
+		numCars = 37;
+		carClient.addCars(id, location, numCars, carPrice);
+		int roomPrice = 103;
+		int numRooms = 99;
+		roomClient.addRooms(id, location, numRooms, roomPrice);
+		result = tm.commit(id);
+		assertTrue(result);
+		
+		
+		id = tm.start();
+		assertEquals(carPrice,carClient.queryCarsPrice(id, location));
+		assertEquals(numRooms,roomClient.queryRooms(id, location));
+		result = tm.commit(id);
+		
 		assertTrue(result);
 		
 	}

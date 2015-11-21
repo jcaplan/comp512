@@ -523,7 +523,9 @@ public class MWTestClient implements MWClientInterface {
 	}
 
 
-	public boolean requestVote() {
-		return true;
+	public boolean requestVote(int id) {
+		return proxy.requestVote(id);
 	}
+
+
 }

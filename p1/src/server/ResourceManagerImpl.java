@@ -558,5 +558,11 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 		return false;
 	}
 
+	@Override
+	public boolean requestVote(int id) {
+		//TODO resource manager votes
+		return true;
+	}
+
 
 }

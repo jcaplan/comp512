@@ -520,10 +520,9 @@ public class MWClient extends WSClient implements MWClientInterface{
 		
 	}
 
-
-	public boolean requestVote() {
-		// TODO Auto-generated method stub
-		return false;
+	@Override
+	public boolean requestVote(int id) {
+		return proxy.requestVote(id);
 	}
 
 

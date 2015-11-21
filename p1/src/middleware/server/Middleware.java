@@ -183,6 +183,11 @@ public class Middleware implements ResourceManager {
 
 	@Override
 	public boolean shutdown() {
+		//check that no transactions are active first
+		if(TMClient.getInstance().txnsActive()){
+			System.out.println("MW::Cannot shut down txns still active");
+			return false;
+		}
 		try{
 			
 			for(int i = 0; i < NUM_CLIENTS; i++){

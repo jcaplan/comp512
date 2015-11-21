@@ -1,20 +1,22 @@
-package middleware.client;
+package test.tm;
 
-import lockmanager.DeadlockException;
-import lockmanager.LockManager;
-import lockmanager.TrxnObj;
-import middleware.tm.TMClient;
 import server.Car;
 import server.Customer;
 import server.Flight;
+import server.ResourceManagerImpl;
 import server.Room;
+import lockmanager.DeadlockException;
+import lockmanager.LockManager;
+import lockmanager.TrxnObj;
+import middleware.client.MWClientInterface;
+import middleware.tm.TMClient;
 
-public class MWClient extends WSClient implements MWClientInterface{
+public class MWTestClient implements MWClientInterface {
+
 	private LockManager lockManager;
-
-	public MWClient(String serviceName, String serviceHost, int servicePort, LockManager lockManager)
-			throws Exception {
-		super(serviceName, serviceHost, servicePort);
+	ResourceManagerImpl proxy;
+	public MWTestClient(LockManager lockManager, ResourceManagerImpl rm) {
+		this.proxy = rm;
 		this.lockManager = lockManager;
 	}
 	
@@ -522,9 +524,6 @@ public class MWClient extends WSClient implements MWClientInterface{
 
 
 	public boolean requestVote() {
-		// TODO Auto-generated method stub
-		return false;
+		return true;
 	}
-
-
 }

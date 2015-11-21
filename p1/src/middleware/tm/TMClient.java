@@ -1,34 +1,49 @@
 package middleware.tm;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import lockmanager.LockManager;
 import middleware.client.MWClient;
+import middleware.client.MWClientInterface;
 
 public class TMClient {
 
 	private static final int TIMEOUT_DELAY = 15000;
-	
-	HashMap<Integer, HashSet<MWClient>> rmList;
+	private static final int COMMIT_TIMEOUT_SECONDS = 10;
+	HashMap<Integer, HashSet<MWClientInterface>> rmList;
 	HashMap<Integer, TimerTask> timerList;
 	Timer timer;
 	
 	private static TMClient theInstance;
 	private static Object lock = new Object();
+	
 
+	MWClientInterface carClient;
+	MWClientInterface flightClient;
+	MWClientInterface roomClient;
+	MWClientInterface custClient;
 
-	MWClient carClient;
-	MWClient flightClient;
-	MWClient roomClient;
-	MWClient custClient;
+	int objectCount = 0;
+	
 	
 	int idCounter = 1;
+
+	private LockManager lockManager;
 	
-	public void setClients(MWClient carClient, MWClient flightClient,
-			MWClient roomClient, MWClient custClient){
+	public synchronized void setClients(MWClientInterface carClient, MWClientInterface flightClient,
+			MWClientInterface roomClient, MWClientInterface custClient){
 		this.carClient = carClient;
 		this.flightClient = flightClient;
 		this.roomClient = roomClient;
@@ -51,7 +66,7 @@ public class TMClient {
 	}
 	
 	
-	public int start(){
+	public synchronized int start(){
 		int id;
 		synchronized(lock){
 			id = idCounter++;
@@ -67,9 +82,7 @@ public class TMClient {
 		return id;
 	}
 	
-	int objectCount = 0;
 
-	private LockManager lockManager;
 	private class AbortTxn extends TimerTask {
 		int id;
 		int count;
@@ -90,38 +103,82 @@ public class TMClient {
 		}
 	}
 	
-	public boolean commit(int id){
+	public synchronized boolean commit(int id){
 
 		System.out.println("TMClient::commit txn" + id);
-		HashSet<MWClient> rms = rmList.get(id);
+		HashSet<MWClientInterface> rms = rmList.get(id);
 		
 		if(rms == null){
 			System.out.println("TMClient::txn id not found");
 			return false;
 		}
 		
-		for(MWClient rm : rms){
-			rm.commit(id);
+
+		boolean voteResult = prepareCommit(id,rms);
+		if(voteResult){
+			System.out.println("TMCLIENT:: final vote result: yes");
+			for(MWClientInterface rm : rms){
+				rm.commit(id);
+				rmList.remove(id);
+				timerList.get(id).cancel();
+				timerList.remove(id);
+				lockManager.UnlockAll(id);
+				
+			}
+		} else {
+			abort(id);
 		}
 		
-		rmList.remove(id);
-		timerList.get(id).cancel();
-		timerList.remove(id);
-		lockManager.UnlockAll(id);
-		
-		return false;
+		return voteResult;
 	}
 	
+	private boolean prepareCommit(int id, HashSet<MWClientInterface> rms) {
+		List<FutureTask<Boolean>> taskList = new ArrayList<>();
+
+		 ExecutorService executor = Executors.newFixedThreadPool(rms.size());
+		 
+		//Create a future task for each RM vote
+		for(MWClientInterface rm : rms){
+			FutureTask<Boolean> vote = new FutureTask<Boolean>(new Callable<Boolean>() {
+				@Override
+				public Boolean call() {
+					return rm.requestVote();
+				}
+			});
+			taskList.add(vote);
+			executor.execute(vote);
+		}
+		
+		
+		boolean result = true;
+		for(FutureTask<Boolean> task : taskList){
+			if(!result){
+				task.cancel(true);
+			} else {
+				try {
+					result &= task.get(COMMIT_TIMEOUT_SECONDS,TimeUnit.SECONDS);
+				} catch (InterruptedException | ExecutionException 
+						| TimeoutException e) {
+					result = false;
+					e.printStackTrace();
+				}
+			}
+		}
+
+        executor.shutdown();
+		return result;
+	}
+
 	public synchronized boolean abort(int id){
 		
 		System.out.println("TMClient::abort");
-		HashSet<MWClient> rms = rmList.get(id);
+		HashSet<MWClientInterface> rms = rmList.get(id);
 		
 		if(rms == null){
 			return false;
 		}
 		
-		for(MWClient rm: rms){
+		for(MWClientInterface rm: rms){
 			rm.abort(id);
 		}
 		rmList.remove(id);
@@ -134,9 +191,7 @@ public class TMClient {
 		return false;
 	}
 	
-	public boolean shutDown(){
-		
-		
+	public synchronized boolean shutDown(){
 		return false;
 	}
 	
@@ -149,8 +204,8 @@ public class TMClient {
 	}
 	
 	
-	public boolean enlistCarRM(int id){
-		HashSet<MWClient> rms = rmList.get(id);
+	public synchronized boolean enlistCarRM(int id){
+		HashSet<MWClientInterface> rms = rmList.get(id);
 		
 		if(rms == null){
 			return false;
@@ -165,8 +220,8 @@ public class TMClient {
 	}
 	
 
-	public boolean enlistFlightRM(int id){
-		HashSet<MWClient> rms = rmList.get(id);
+	public synchronized boolean enlistFlightRM(int id){
+		HashSet<MWClientInterface> rms = rmList.get(id);
 		
 		if(rms == null){
 			return false;
@@ -180,8 +235,8 @@ public class TMClient {
 		return true;
 	}
 	
-	public boolean enlistRoomRM(int id){
-		HashSet<MWClient> rms = rmList.get(id);
+	public synchronized boolean enlistRoomRM(int id){
+		HashSet<MWClientInterface> rms = rmList.get(id);
 		
 		if(rms == null){
 			return false;
@@ -195,8 +250,8 @@ public class TMClient {
 		return true;
 	}
 	
-	public boolean enlistCustomerRM(int id){
-		HashSet<MWClient> rms = rmList.get(id);
+	public synchronized boolean enlistCustomerRM(int id){
+		HashSet<MWClientInterface> rms = rmList.get(id);
 		
 		if(rms == null){
 			return false;
@@ -211,10 +266,31 @@ public class TMClient {
 		return true;
 	}
 
-	public void setLockManager(LockManager lockManager) {
+	public synchronized void setLockManager(LockManager lockManager) {
 		this.lockManager = lockManager;
 		
 	}
 	
+	public static void deleteInstance(){
+		if(theInstance == null){
+			return;
+		}
+		theInstance.rmList.clear();
+		for(int id : theInstance.timerList.keySet()){
+			TimerTask task = theInstance.timerList.get(id);
+			task.cancel();
+		}
+		theInstance.timerList.clear();
+		theInstance.timer.cancel();
+		lock = new Object();
+		theInstance.carClient = null;
+		theInstance.flightClient = null;
+		theInstance.roomClient = null;
+		theInstance.custClient = null;
+		theInstance.objectCount = 0;
+		theInstance.idCounter = 1;
+		theInstance.lockManager = null;
+		theInstance  = null;
+	}
 	
 }

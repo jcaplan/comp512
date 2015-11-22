@@ -9,6 +9,9 @@ import java.util.Calendar;
 import java.util.Vector;
 
 import javax.jws.WebService;
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 
 import server.tm.TMServer;
 
@@ -16,28 +19,47 @@ import server.tm.TMServer;
 public class ResourceManagerImpl implements server.ws.ResourceManager {
 
 	protected RMHashtable m_itemHT = new RMHashtable();
+    private String serviceName;
+    private TMServer tmServer;
 
 	Object syncLock = new Object();
 	// Basic operations on RMItem //
 
+    public ResourceManagerImpl(){
+        tmServer = new TMServer();
+        try{
+            Context env = (Context) new InitialContext().lookup("java:comp/env");
+            this.serviceName = (String) env.lookup("service-name");
+
+
+        }catch (NamingException e){
+            e.printStackTrace();
+        }
+    }
+
+    public ResourceManagerImpl(String serviceName){
+        tmServer = new TMServer();
+        this.serviceName = serviceName;
+    }
+
 	@Override
 	public boolean abort(int id){
 		synchronized(m_itemHT){
-			return TMServer.getInstance().abortTxn(id, m_itemHT);
+			return tmServer.abortTxn(id, m_itemHT);
 		}
 	}
 	
 	@Override
 	public boolean start(int id){
 		synchronized(m_itemHT){
-			return TMServer.getInstance().start(id);
+			return tmServer.start(id);
 		}
 	}
 	
 	@Override
 	public boolean commit(int id){
 		synchronized(m_itemHT){
-			return TMServer.getInstance().commitTxn(id);
+			return tmServer.commitTxn(id);
 		}
 	}
 	
@@ -45,26 +67,25 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 	public boolean shutdown(){
 		return false;
 	}
-	
 
 
 
-	
+
 	private void setPrice(int id, ReservableItem item, int price){
 		//Checks that the transaction ID is valid...
-		if(TMServer.getInstance().writeData(id, item.getKey(), item)){
+		if(tmServer.writeData(id, item.getKey(), item)){
 			item.setPrice(price);
 		}
 	}
 	
 	private void setCount(int id, ReservableItem item, int count){
-		if(TMServer.getInstance().writeData(id, item.getKey(), item)){
+		if(tmServer.writeData(id, item.getKey(), item)){
 			item.setCount(count);
 		}
 	}
 	
 	private void setReserved(int id, ReservableItem item, int reserved){
-		if(TMServer.getInstance().writeData(id, item.getKey(), item)){
+		if(tmServer.writeData(id, item.getKey(), item)){
 			item.setReserved(reserved);
 		}
 	}
@@ -72,7 +93,7 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 	private void custReserve(int id, Customer cust, String key, String location, int  price){
 		ReservedItem item = cust.getReservedItem(key);
 		
-		if(TMServer.getInstance().writeData(id, cust.getKey(), item)){
+		if(tmServer.writeData(id, cust.getKey(), item)){
 			cust.reserve(key, location, price);
 		}
 	}
@@ -88,7 +109,7 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 	private void writeData(int id, String key, RMItem value) {
 		boolean result;
 		synchronized (m_itemHT) {
-			TMServer tm = TMServer.getInstance();
+			TMServer tm = tmServer;
 			if(tm.writeData(id,key,(RMItem)m_itemHT.get(key))){
 				m_itemHT.put(key, value);
 			}
@@ -98,7 +119,7 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 	// Remove the item out of storage.
 	protected RMItem removeData(int id, String key) {
 		synchronized (m_itemHT) {
-			TMServer tm = TMServer.getInstance();
+			TMServer tm = tmServer;
 			if(tm.removeData(id,key, (RMItem) m_itemHT.get(key))){
 				return (RMItem) m_itemHT.remove(key);
 			} else {

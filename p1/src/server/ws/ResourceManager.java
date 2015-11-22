@@ -17,7 +17,6 @@
 package server.ws;
 
 import lockmanager.DeadlockException;
-
 import java.util.*;
 
 import javax.jws.WebService;

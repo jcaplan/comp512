@@ -74,7 +74,7 @@
     <target name="create-war-server">
         <war 
             warfile="${basedir}/build/war/${server-service.name}.war" 
-            webxml="${server.dir}/etc/web.xml">
+            webxml="${server.dir}/etc/${server-service.name}-web.xml">
             <webinf dir="${server.dir}/etc" includes="sun-jaxws.xml"/>
             <zipfileset
                     dir="${server.dir}/etc"

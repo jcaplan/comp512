@@ -28,4 +28,10 @@ Inc.//DTD Web Application 2.3//EN"
         <session-timeout>120</session-timeout>
     </session-config>
 
+    <env-entry>
+        <env-entry-name>service-name</env-entry-name>
+        <env-entry-value>car</env-entry-value>
+        <env-entry-type>java.lang.String</env-entry-type>
+    </env-entry>
+
 </web-app>

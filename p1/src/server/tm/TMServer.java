@@ -7,46 +7,10 @@ import server.RMItem;
 
 public class TMServer {
 
-	
-	
-	private class WriteList{
-		
-		HashMap<String, RMItem> writeList;
-		
-		public WriteList(){
-			writeList = new HashMap<>();
-		}
-		
-		public boolean writeItem(String key, RMItem value){
-			if(!writeList.containsKey(key)){
-				writeList.put(key, value);
-				return true;
-			} else {
-				return false;
-			}
-		}
-		
-	}
-	
-	
-	private static TMServer theInstance;
-	private static Object lock = new Object();
-	
 	private HashMap<Integer,WriteList> txnWriteList;
+
 	
-	
-	public static TMServer getInstance(){
-		synchronized(lock){
-			if(theInstance == null){
-				theInstance = new TMServer();
-			}
-			return theInstance;
-		}
-	}
-	
-	
-	
-	private TMServer(){
+	public TMServer(){
 		txnWriteList = new HashMap<>();
 	}
 

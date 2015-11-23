@@ -10,6 +10,7 @@ import server.RMHashtable;
 import server.RMPersistence;
 import server.tm.WriteList;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Set;
 
@@ -22,7 +23,7 @@ public class TestRMPersistence {
     RMHashtable table;
 
     @Before
-    public void setup(){
+    public void setup() throws IOException {
         persistence = new RMPersistence(rmType);
         car1 = new Car(Car.getKey("MONTREAL"),1,10);
         car2 = new Car(Car.getKey("MONTREAL"),2,10);
@@ -36,7 +37,7 @@ public class TestRMPersistence {
     }
 
     @Test
-    public void testTxnRecordPersistence(){
+    public void testTxnRecordPersistence() throws IOException, ClassNotFoundException {
         int xid = 1;
         String record = "abort";
         persistence.saveTxnRecord(xid, record);
@@ -49,7 +50,7 @@ public class TestRMPersistence {
     }
 
     @Test
-    public void testSaveTxnSnapshot(){
+    public void testSaveTxnSnapshot() throws IOException, ClassNotFoundException {
 
 
         int xid = 1;
@@ -62,14 +63,14 @@ public class TestRMPersistence {
 
         assertTrue(recoveredTxnWriteList.size()==1);
         assertTrue(recoveredTxnWriteList.containsKey(xid));
-        assertEquals(car1, recoveredTxnWriteList.get(xid).getItem(car1.getKey()));
+        assertEquals(car1.toString(), recoveredTxnWriteList.get(xid).getItem(car1.getKey()).toString());
         assertTrue(recoveredTable.size()==1);
-        assertEquals(car2,recoveredTable.get(car2.getKey()));
+        assertEquals(car2.toString(),recoveredTable.get(car2.getKey()).toString());
 
     }
 
     @Test
-    public void testShadowing(){
+    public void testShadowing() throws IOException, ClassNotFoundException {
         //simulate doing a partial write and crash
         int xid = 1;
         persistence.saveTxnSnapshot(xid, writeList, table);
@@ -87,9 +88,11 @@ public class TestRMPersistence {
         //verify partially written data are not returned
         assertTrue(recoveredTxnWriteList.size()==1);
         assertTrue(recoveredTxnWriteList.containsKey(xid));
-        assertEquals(car1, recoveredTxnWriteList.get(xid).getItem(car1.getKey()));
+        assertEquals(car1.toString(), recoveredTxnWriteList.get(xid).getItem(car1.getKey()).toString());
         assertTrue(recoveredTable.size()==1);
-        assertEquals(car2,recoveredTable.get(car2.getKey()));
+        assertEquals(car2.toString(),recoveredTable.get(car2.getKey()).toString());
+
+
     }
 
 }

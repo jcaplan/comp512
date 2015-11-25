@@ -2,8 +2,11 @@ package test.tm;
 
 import static org.junit.Assert.*;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.naming.NamingException;
 
 import lockmanager.DeadlockException;
 import lockmanager.LockManager;
@@ -44,7 +47,7 @@ public class TestTMClient {
 	}
 	
 	@Before
-	public void beforeTest(){
+	public void beforeTest() throws ClassNotFoundException, NamingException, IOException{
 		servers.clear();
 		clients.clear();
 		lm = new LockManager();

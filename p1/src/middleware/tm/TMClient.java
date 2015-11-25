@@ -115,16 +115,26 @@ public class TMClient {
 		
 
 		boolean voteResult = prepareCommit(id,rms);
+		
+		//TODO crash here
+		
+		//TODO log decision
+		
+		//TODO crash here
 		if(voteResult){
 			System.out.println("TMCLIENT:: final vote result: yes");
 			for(MWClientInterface rm : rms){
 				rm.commit(id);
-				removeTxn(id);			
+				removeTxn(id);
+				//TODO crash here
 			}
 		} else {
 			abort(id);
 		}
 		
+		//TODO crash here
+		//Log here
+		//TODO crash here
 		return voteResult;
 	}
 	
@@ -139,6 +149,8 @@ public class TMClient {
 		lockManager.UnlockAll(id);
 	}
 
+	//TODO crash here
+	
 	private boolean prepareCommit(int id, HashSet<MWClientInterface> rms) {
 		List<FutureTask<Boolean>> taskList = new ArrayList<>();
 
@@ -154,7 +166,9 @@ public class TMClient {
 			});
 			taskList.add(vote);
 			executor.execute(vote);
-		}
+			
+			//TODO crash here
+		}		
 		
 		
 		boolean result = true;
@@ -165,10 +179,12 @@ public class TMClient {
 				try {
 					result &= task.get(COMMIT_TIMEOUT_SECONDS,TimeUnit.SECONDS);
 					System.out.println("TM receives new result: " + (result ? "YES" : "NO"));
-				} catch (InterruptedException | ExecutionException 
-						| TimeoutException e) {
+				} catch (InterruptedException | ExecutionException e) {
 					result = false;
-					e.printStackTrace();
+					System.out.println("TMClient::ERROR: RM crashed during vote! abort txn " + id);
+				} catch (TimeoutException e){
+					result = false;
+					System.out.println("TMClient::ERROR: RM timed out during vote! abort txn " + id);
 				}
 			}
 		}
@@ -179,7 +195,7 @@ public class TMClient {
 
 	public synchronized boolean abort(int id){
 		
-		System.out.println("TMClient::abort");
+		System.out.println("TMClient::abort txn " + id);
 		HashSet<MWClientInterface> rms = rmList.get(id);
 		
 		if(rms == null){

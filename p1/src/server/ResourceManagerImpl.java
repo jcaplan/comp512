@@ -41,6 +41,8 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 	@Override
 	public boolean abort(int id) {
         boolean aborted;
+        //TODO crash here
+        
 		synchronized(m_itemHT){
 			aborted =  tmServer.abortTxn(id, m_itemHT);
 		}
@@ -64,6 +66,8 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 	@Override
 	public boolean commit(int id) throws Exception{
         boolean committed;
+        
+        //TODO crash here
 		synchronized(m_itemHT){
 			committed =  tmServer.commitTxn(id);
 		}
@@ -273,9 +277,6 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 		}
 	}
 
-	//TODO
-	//Not using this yet... only change customer data once all reservations
-	//in itinerary are confirmed. Otherwise, don't support customer cancellation.
 	@Override
 	public boolean cancelReserveCustomer(int id, int customerId, String key,
 			String location, int price) {
@@ -590,15 +591,29 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 
 	@Override
 	public boolean requestVote(int id) {
-		//TODO resource manager votes
+
+		
+		
+		
+		//TODO crash before record
+		
+		//If(!tm.hasTransaction(id) return false;
+		
         try {
-            rmPersistence.saveTxnSnapshot(id,tmServer.getLastCommittedVersionOfModifiedData(id),m_itemHT);
+        	////TODO rmPersistance should not change shadow pointer here...
+        	// wait for commit
+        	rmPersistence.saveTxnSnapshot(id,tmServer.getLastCommittedVersionOfModifiedData(id),m_itemHT);
             rmPersistence.saveTxnRecord(id,"yes");
         } catch (Exception e) {
             e.printStackTrace();
             abort(id);
             return false;
-        }
+        } 
+        
+        // TODO crash after sending answer...
+        // start a new thread, wait half a second, then thread exits entire program
+        
+        
         return true;
 	}
 

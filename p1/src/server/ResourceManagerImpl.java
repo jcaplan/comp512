@@ -5,6 +5,7 @@
 
 package server;
 
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.Vector;
 
@@ -18,35 +19,39 @@ import server.tm.TMServer;
 @WebService(endpointInterface = "server.ws.ResourceManager")
 public class ResourceManagerImpl implements server.ws.ResourceManager {
 
-	protected RMHashtable m_itemHT = new RMHashtable();
-    private String serviceName;
+	protected RMHashtable m_itemHT;
     private TMServer tmServer;
+    private RMPersistence rmPersistence;
 
 	Object syncLock = new Object();
 	// Basic operations on RMItem //
 
-    public ResourceManagerImpl(){
-        tmServer = new TMServer();
-        try{
-            Context env = (Context) new InitialContext().lookup("java:comp/env");
-            this.serviceName = (String) env.lookup("service-name");
+    public ResourceManagerImpl() throws NamingException, IOException, ClassNotFoundException {
 
-
-        }catch (NamingException e){
-            e.printStackTrace();
-        }
+        this((String)(((Context) new InitialContext().lookup("java:comp/env")).lookup("service-name")));
     }
 
-    public ResourceManagerImpl(String serviceName){
+    public ResourceManagerImpl(String serviceName) throws IOException, ClassNotFoundException {
         tmServer = new TMServer();
-        this.serviceName = serviceName;
+        rmPersistence = new RMPersistence(serviceName);
+        m_itemHT = rmPersistence.recoverRMTable();
+        tmServer.setTxnWriteList(rmPersistence.recoverAllWriteList());
     }
 
 	@Override
-	public boolean abort(int id){
+	public boolean abort(int id) {
+        boolean aborted;
 		synchronized(m_itemHT){
-			return tmServer.abortTxn(id, m_itemHT);
+			aborted =  tmServer.abortTxn(id, m_itemHT);
 		}
+        if (aborted)
+            try {
+                rmPersistence.saveTxnRecord(id,"abort");
+            } catch (Exception e) {
+                e.printStackTrace();
+                aborted = false;
+            }
+        return aborted;
 	}
 	
 	@Override
@@ -57,10 +62,14 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 	}
 	
 	@Override
-	public boolean commit(int id){
+	public boolean commit(int id) throws Exception{
+        boolean committed;
 		synchronized(m_itemHT){
-			return tmServer.commitTxn(id);
+			committed =  tmServer.commitTxn(id);
 		}
+        if (committed)
+            rmPersistence.saveTxnRecord(id,"commit");
+        return committed;
 	}
 	
 	@Override
@@ -582,7 +591,15 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 	@Override
 	public boolean requestVote(int id) {
 		//TODO resource manager votes
-		return true;
+        try {
+            rmPersistence.saveTxnSnapshot(id,tmServer.getLastCommittedVersionOfModifiedData(id),m_itemHT);
+            rmPersistence.saveTxnRecord(id,"yes");
+        } catch (Exception e) {
+            e.printStackTrace();
+            abort(id);
+            return false;
+        }
+        return true;
 	}
 
 

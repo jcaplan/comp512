@@ -81,8 +81,13 @@ public class TMServer {
 		txnWriteList.remove(id);
 		return true;
 	}
+
+    public WriteList getLastCommittedVersionOfModifiedData(int id){
+        return txnWriteList.get(id);
+    }
 	
-	
-	
+	public void setTxnWriteList(HashMap<Integer,WriteList> recoveredTxnWriteList){
+        this.txnWriteList = recoveredTxnWriteList;
+    }
 	
 }

@@ -17,6 +17,8 @@
 package server.ws;
 
 import lockmanager.DeadlockException;
+
+import java.io.IOException;
 import java.util.*;
 
 import javax.jws.WebService;
@@ -164,15 +166,15 @@ public interface ResourceManager {
     public boolean start(int id); //client to MW
     
     @WebMethod
-    public boolean commit(int id);
+    public boolean commit(int id) throws Exception;
     
     @WebMethod 
-    public boolean abort(int id);
+    public boolean abort(int id) throws Exception;
     
     @WebMethod 
     public boolean shutdown();
 
     @WebMethod
-	boolean requestVote(int id);
+	boolean requestVote(int id) throws Exception;
     			
 }

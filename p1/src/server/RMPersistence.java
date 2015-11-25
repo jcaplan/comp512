@@ -9,7 +9,7 @@ import java.util.Set;
 
 
 public class RMPersistence {
-    // TODO implement
+
     private String rmType;
     private boolean testShadowing = false;
     private HashMap<Integer,Set<String>> txnRecords;
@@ -59,7 +59,7 @@ public class RMPersistence {
             return new HashSet<>();
     }
 
-    public void saveTxnRecord(int xid, String record) throws IOException, ClassNotFoundException {
+    public synchronized void saveTxnRecord(int xid, String record) throws IOException, ClassNotFoundException {
 
         FileInputStream inputStream = new FileInputStream(recordLocation);
         ObjectInputStream in = new ObjectInputStream(inputStream);
@@ -81,7 +81,7 @@ public class RMPersistence {
 
     }
 
-    public void saveTxnSnapshot(int xid, WriteList writeList, RMHashtable table) throws IOException, ClassNotFoundException {
+    public synchronized void saveTxnSnapshot(int xid, WriteList writeList, RMHashtable table) throws IOException, ClassNotFoundException {
         BufferedReader br = new BufferedReader(new FileReader(masterRecordPath));
         String master = br.readLine();
         String pathToSaveTable, pathToSaveWriteList, pathToReadWriteList;

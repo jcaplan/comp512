@@ -21,7 +21,7 @@ import middleware.client.MWClientInterface;
 
 public class TMClient {
 
-	private static final int TIMEOUT_DELAY = 5000;
+	private static final int TIMEOUT_DELAY = 1000;
 	private static final int COMMIT_TIMEOUT_SECONDS = 5;
 	
 	private int crashLocation = -1;

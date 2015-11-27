@@ -9,7 +9,7 @@ import server.RMItem;
 
 public class TMServer {
 
-	private static final int TIMEOUT_DELAY = 5000;
+	private static final int TIMEOUT_DELAY = 1000;
 	private HashMap<Integer,WriteList> txnWriteList;
 	RMHashtable table;
 	HashMap<Integer, TimerTask> timerList;

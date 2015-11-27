@@ -216,12 +216,12 @@ public class TestTMClient {
 		
 		
 		//check persistence. should only work for car.
+		id = tm.start();
+		ResourceManagerImpl newCarServer = new ResourceManagerImpl("carRM");
 
+		assertEquals(100, newCarServer.queryCars(id, location));
 		ResourceManagerImpl newRoomServer = new ResourceManagerImpl("roomRM");
 		assertEquals(0,newRoomServer.queryRooms(id, location));
-		ResourceManagerImpl newCarServer = new ResourceManagerImpl("carRM");
-		id = tm.start();
-		assertEquals(100, newCarServer.queryCars(id, location));
 		tm.commit(id);
 		
 		

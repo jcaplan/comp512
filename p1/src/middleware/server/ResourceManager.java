@@ -23,6 +23,9 @@ import java.util.*;
 import javax.jws.WebService;
 import javax.jws.WebMethod;
 
+import crash.CrashException;
+
+
 
 
 @WebService
@@ -166,7 +169,7 @@ public interface ResourceManager {
     public int start(); //MW to RM
     
     @WebMethod
-    public boolean commit(int id);
+    public boolean commit(int id) throws CrashException;
     
     @WebMethod 
     public boolean abort(int id);

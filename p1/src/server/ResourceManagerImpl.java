@@ -14,6 +14,7 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
+import crash.CrashException;
 import server.tm.TMServer;
 
 @WebService(endpointInterface = "server.ws.ResourceManager")
@@ -42,7 +43,7 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 	@Override
 	public boolean abort(int id) {
         boolean aborted;
-        //TODO crash here
+        //TODO  here
         
 		synchronized(m_itemHT){
 			aborted =  tmServer.abortTxn(id);
@@ -50,7 +51,7 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
         if (aborted)
             try {
                 rmPersistence.saveTxnRecord(id,"abort");
-            } catch (Exception e) {
+            } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
                 aborted = false;
             }
@@ -65,15 +66,19 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 	}
 	
 	@Override
-	public boolean commit(int id) throws Exception{
+	public boolean commit(int id) throws CrashException{
         boolean committed;
         
-        //TODO crash here
+        //TODO  here
 		synchronized(m_itemHT){
 			committed =  tmServer.commitTxn(id);
 		}
         if (committed)
-            rmPersistence.saveTxnRecord(id,"commit");
+			try {
+				rmPersistence.saveTxnRecord(id,"commit");
+			} catch (ClassNotFoundException | IOException e) {
+				e.printStackTrace();
+			}
         return committed;
 	}
 	
@@ -596,7 +601,7 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 		
 		
 		
-		//TODO crash before record
+		//TODO  before record
 		
 		//If(!tm.hasTransaction(id) return false;
 		
@@ -606,13 +611,13 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
         	rmPersistence.saveTxnSnapshot(id,tmServer.getLastCommittedVersionOfModifiedData(id),m_itemHT);
             rmPersistence.saveTxnRecord(id,"yes");
             tmServer.requestVote(id);
-        } catch (Exception e) {
+        } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
             abort(id);
             return false;
         } 
         
-        // TODO crash after sending answer...
+        // TODO  after sending answer...
         // start a new thread, wait half a second, then thread exits entire program
         
         

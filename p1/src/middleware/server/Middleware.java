@@ -173,13 +173,10 @@ public class Middleware implements ResourceManager {
 	}
 
 	@Override
-	public boolean commit(int id) {
+	public boolean commit(int id) throws CrashException{
 		boolean result = false;
-		try {
-			result = TMClient.getInstance().commit(id);
-		} catch (CrashException e) {
-			e.printStackTrace();
-		}
+
+		result = TMClient.getInstance().commit(id);
 		return result;
 	}
 

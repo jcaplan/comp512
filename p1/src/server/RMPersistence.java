@@ -52,7 +52,7 @@ public class RMPersistence {
     }
 
     public Set<String> loadTxnRecord(int xid) throws IOException, ClassNotFoundException {
-        String recordLocation =  "./" + rmType + "_record.dat";
+        String recordLocation =  "./record/" + rmType + "_record.dat";
         FileInputStream inputStream = new FileInputStream(recordLocation);
         ObjectInputStream in = new ObjectInputStream(inputStream);
         HashMap<Integer,Set<String>> savedRecords = (HashMap<Integer,Set<String>>)in.readObject();

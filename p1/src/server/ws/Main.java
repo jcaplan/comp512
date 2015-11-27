@@ -39,6 +39,8 @@ public class Main {
         		System.out.println("Shutting down RM");
         	}
         });
+        
+        tomcat.enableNaming();
         tomcat.start();
         
         tomcat.getServer().await();

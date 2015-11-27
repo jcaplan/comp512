@@ -522,7 +522,12 @@ public class MWClient extends WSClient implements MWClientInterface{
 
 	@Override
 	public boolean requestVote(int id) {
-		return proxy.requestVote(id);
+		try {
+			return proxy.requestVote(id);
+		} catch (CrashException_Exception e) {
+			e.printStackTrace();
+			return false;
+		}
 	}
 
 

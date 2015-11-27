@@ -24,6 +24,7 @@ import java.util.*;
 import javax.jws.WebService;
 import javax.jws.WebMethod;
 
+import crash.Crash;
 import crash.CrashException;
 
 
@@ -178,5 +179,11 @@ public interface ResourceManager {
 
     @WebMethod
 	boolean requestVote(int id) throws CrashException;
+
+    @WebMethod
+	void setCrashLocation(int location);
+
+    @WebMethod
+	void setCrashType(boolean isTest);
     			
 }

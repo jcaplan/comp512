@@ -101,7 +101,7 @@ public class TMClient {
 		@Override
 		public void run() {
 			abort(id);
-			System.err.println(System.currentTimeMillis() + ":Txn #" + id + " : Task # " + count + ": timeout!!");
+			System.err.println("TMClient::" + System.currentTimeMillis() + ":Txn #" + id + " : Task # " + count + ": timeout!!");
 		}
 		
 		public int getCount(){
@@ -118,9 +118,12 @@ public class TMClient {
 			System.out.println("TMClient::txn id not found");
 			return false;
 		}
-		
-
-		boolean voteResult = prepareCommit(id,rms);
+		boolean voteResult = false;
+		try {
+			voteResult = prepareCommit(id,rms);
+		} catch (CrashException e){
+			//TODO
+		}
 		
 		//TODO CRASH LOCATION 1
 		if(crashLocation == 1){
@@ -135,14 +138,43 @@ public class TMClient {
 		
 		if(voteResult){
 			System.out.println("TMCLIENT:: final vote result: yes");
+			ArrayList<MWClientInterface> failedList = new ArrayList<>();
 			for(MWClientInterface rm : rms){
-				rm.commit(id);
-				removeTxn(id);
+				try {
+					rm.commit(id);
+				} catch (CrashException e) {
+					failedList.add(rm);
+					System.out.println("RM crashed during commit");
+				}
 				//TODO crash here
 				if(crashLocation == 2){
 					crash.crash("TM crashes after sending result to 1 RM");
 				}
+				
 			}
+			if(failedList.size() > 0){
+				for(MWClientInterface rm : failedList){
+					boolean failed = true;
+					while(failed){
+						try {
+							rm.commit(id);
+							failed = false;
+						} catch ( CrashException e){
+							System.out.println("RM retry commit still failed");
+						}
+						if(failed){
+							try {
+								Thread.sleep(50);
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
+						}
+					}
+				}
+				System.out.println("repeat of commit succeeded");
+		
+			}
+			removeTxn(id);
 		} else {
 			abort(id);
 		}
@@ -179,7 +211,7 @@ public class TMClient {
 		for(MWClientInterface rm : rms){
 			FutureTask<Boolean> vote = new FutureTask<Boolean>(new Callable<Boolean>() {
 				@Override
-				public Boolean call() {
+				public Boolean call() throws CrashException {
 					return rm.requestVote(id);
 				}
 			});
@@ -225,11 +257,41 @@ public class TMClient {
 			return false;
 		}
 		
+		ArrayList<MWClientInterface> failedList = new ArrayList<>();
 		for(MWClientInterface rm: rms){
-			rm.abort(id);
+			try {
+				rm.abort(id);
+			} catch (CrashException e) {
+				System.out.println("Rm crashed while aborting");
+				failedList.add(rm);
+			}
 		}
+		
+		if(failedList.size() > 0){
+			System.out.println("Repeat abort for " + failedList.size() + "Rms");
+			for(MWClientInterface rm : failedList){
+				boolean failed = true;
+				while(failed){
+					try {
+						rm.abort(id);
+						failed = false;
+					} catch ( CrashException e){
+						System.out.println("RM retry abort still failed");
+					}
+					if(failed){
+						try {
+							Thread.sleep(50);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+			}
+			System.out.println("repeat of failed abort succeeded");
+		}
+		
 		removeTxn(id);
-		return false;
+		return true;
 	}
 	
 	public synchronized boolean shutDown(){

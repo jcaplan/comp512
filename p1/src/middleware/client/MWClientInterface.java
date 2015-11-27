@@ -1,14 +1,15 @@
 package middleware.client;
 
+import crash.CrashException;
 import lockmanager.DeadlockException;
 
 public interface MWClientInterface {
 
-	public boolean abort(int id);
+	public boolean abort(int id) throws CrashException;
 	
 	public boolean start(int id);
 	
-	public boolean commit(int id);
+	public boolean commit(int id) throws CrashException;
 	
 	public int run(int id);
 	
@@ -60,6 +61,10 @@ public interface MWClientInterface {
 	
 	public boolean deleteCustomer(int id, int customerId) throws DeadlockException;
 	
-	public boolean requestVote(int id);
+	public boolean requestVote(int id) throws CrashException;
+	
+	void setCrashLocation(int location);
+
+	void setCrashType(boolean isTest);
 	
 }

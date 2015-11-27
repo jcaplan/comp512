@@ -14,7 +14,10 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
+import crash.Crash;
 import crash.CrashException;
+import crash.TestRMCrash;
+import crash.WSCrash;
 import server.tm.TMServer;
 
 @WebService(endpointInterface = "server.ws.ResourceManager")
@@ -23,7 +26,9 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 	protected RMHashtable m_itemHT;
     private TMServer tmServer;
     private RMPersistence rmPersistence;
-
+	private int crashLocation = -1;
+	private Crash crash;
+	
 	Object syncLock = new Object();
 	// Basic operations on RMItem //
 
@@ -41,9 +46,13 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
     }
 
 	@Override
-	public boolean abort(int id) {
+	public boolean abort(int id) throws CrashException {
         boolean aborted;
-        //TODO  here
+        //TODO  crash here
+        
+        if(crashLocation == 1){
+        	crash.crash("RM crashes before aborting");
+        }
         
 		synchronized(m_itemHT){
 			aborted =  tmServer.abortTxn(id);
@@ -69,7 +78,11 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 	public boolean commit(int id) throws CrashException{
         boolean committed;
         
-        //TODO  here
+        //TODO  crash here
+        
+        if(crashLocation == 2){
+        	crash.crash("RM crashes before committing");
+        }
 		synchronized(m_itemHT){
 			committed =  tmServer.commitTxn(id);
 		}
@@ -596,13 +609,15 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 	}
 
 	@Override
-	public boolean requestVote(int id) {
+	public boolean requestVote(int id) throws CrashException {
 
 		
 		
 		
 		//TODO  before record
-		
+		if(crashLocation == 3){
+			crash.crash("RM crashes before returning vote");
+		}
 		//If(!tm.hasTransaction(id) return false;
 		
         try {
@@ -619,10 +634,46 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
         
         // TODO  after sending answer...
         // start a new thread, wait half a second, then thread exits entire program
+        if(crashLocation == 4){
+	       (new Thread(){
+	    	   public void run(){
+	    		   try {
+					Thread.sleep(500);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+	    		   try {
+					crash.crash("RM crashes after sending vote response");
+				} catch (CrashException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+	    	   };
+	       }).start();
+        }
         
         
         return true;
 	}
-
+	
+	@Override
+	public void setCrashLocation(int location){
+		crashLocation = location;
+	}
+	
+	@Override
+	public void setCrashType(boolean isTest){
+		if(isTest){
+			crash = new TestRMCrash();
+	
+		} else {
+			crash = new WSCrash();
+		}
+	}
+	
+	public void setTimeout(int timeout){
+		tmServer.setTimeout(timeout);
+	}
 
 }

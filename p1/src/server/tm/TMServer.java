@@ -9,7 +9,7 @@ import server.RMItem;
 
 public class TMServer {
 
-	private static final int TIMEOUT_DELAY = 1000;
+	private int TIMEOUT_DELAY = 60000;
 	private HashMap<Integer,WriteList> txnWriteList;
 	RMHashtable table;
 	HashMap<Integer, TimerTask> timerList;
@@ -117,7 +117,7 @@ public class TMServer {
 		@Override
 		public void run() {
 			abortTxn(id);
-			System.err.println(System.currentTimeMillis() + ":Txn #" + id  + ": timeout!!");
+			System.err.println("TMServer::" + System.currentTimeMillis() + ":Txn #" + id  + ": timeout!!");
 		}
 
 	}
@@ -146,5 +146,9 @@ public class TMServer {
 	public void requestVote(int id) {
 		removeTimerTask(id);
 		System.out.println("TMServer:: vote received for txn " + id + ", wait indefinitely for result");
+	}
+	
+	public void setTimeout(int timeout){
+		TIMEOUT_DELAY = timeout;
 	}
 }

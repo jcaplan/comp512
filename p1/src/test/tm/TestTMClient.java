@@ -18,7 +18,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import crash.CrashException;
-import crash.TestCrash;
+import crash.TestTMCrash;
 import server.RMPersistence;
 import server.ResourceManagerImpl;
 import server.ws.ResourceManager;
@@ -56,11 +56,15 @@ public class TestTMClient {
 		servers.clear();
 		clients.clear();
 		lm = new LockManager();
+		LockManager.reset();
 		carServer = new ResourceManagerImpl("carRM");
 		flightServer = new ResourceManagerImpl("flightRM");
 		roomServer = new ResourceManagerImpl("roomRM");
 		custServer = new ResourceManagerImpl("custRM");
-		
+		carServer.setTimeout(1000);
+		flightServer.setTimeout(1000);
+		roomServer.setTimeout(1000);
+		custServer.setTimeout(1000);
 		servers.add(carServer);
 		servers.add(flightServer);
 		servers.add(roomServer);
@@ -81,7 +85,7 @@ public class TestTMClient {
 	
 	
 	private void resetTM() {
-		TMClient.deleteInstance();
+		TMClient.deleteInstance(); 
 		TMClient.getInstance().setClients(carClient, flightClient, roomClient, custClient);
 		TMClient.getInstance().setLockManager(lm);	
 	}
@@ -148,7 +152,7 @@ public class TestTMClient {
 		int roomPrice = 103;
 		int numRooms = 99;
 		roomClient.addRooms(id, location, numRooms, roomPrice);
-		tm.setCrash(new TestCrash());
+		tm.setCrash(new TestTMCrash());
 		tm.setCrashLocation(crashLocation);
 		try{
 			result = tm.commit(id);
@@ -193,7 +197,7 @@ public class TestTMClient {
 		int roomPrice = 103;
 		int numRooms = 99;
 		roomClient.addRooms(id, location, numRooms, roomPrice);
-		tm.setCrash(new TestCrash());
+		tm.setCrash(new TestTMCrash());
 		tm.setCrashLocation(crashLocation);
 		try{
 			result = tm.commit(id);
@@ -248,7 +252,7 @@ public class TestTMClient {
 		int roomPrice = 103;
 		int numRooms = 99;
 		roomClient.addRooms(id, location, numRooms, roomPrice);
-		tm.setCrash(new TestCrash());
+		tm.setCrash(new TestTMCrash());
 		tm.setCrashLocation(crashLocation);
 		try{
 			result = tm.commit(id);
@@ -303,7 +307,7 @@ public class TestTMClient {
 		int roomPrice = 103;
 		int numRooms = 99;
 		roomClient.addRooms(id, location, numRooms, roomPrice);
-		tm.setCrash(new TestCrash());
+		tm.setCrash(new TestTMCrash());
 		tm.setCrashLocation(crashLocation);
 		try{
 			result = tm.commit(id);
@@ -333,4 +337,120 @@ public class TestTMClient {
 		assertEquals(63, newCarServer.queryCars(id, location));
 		
 	}
+	
+	@Test
+	public void crashRM1Test() throws DeadlockException, CrashException, InterruptedException, ClassNotFoundException, IOException {
+		int crashLocation = 1;
+		TMClient tm = TMClient.getInstance();
+		
+		int id = tm.start();
+		String location = "MONTREAL";
+		int numCars = 63;
+		int carPrice = 101;
+		
+		carClient.addCars(id, location, numCars, carPrice);
+		
+		boolean result = tm.commit(id);
+		
+		result = false;
+		id = tm.start();
+		carPrice = 102;
+		numCars = 37;
+		carClient.addCars(id, location, numCars, carPrice);
+		int roomPrice = 103;
+		int numRooms = 99;
+		roomClient.addRooms(id, location, numRooms, roomPrice);
+		carClient.setCrashLocation(crashLocation);
+		carClient.setCrashType(true);
+		(new Thread(){
+			public void run(){
+				try {
+					Thread.sleep(50);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				carClient.setCrashLocation(-1);
+			}
+		}).start();
+		
+		result = tm.abort(id);
+		
+
+		assertTrue(result); //transaction passes after retry
+		
+	}
+	
+	@Test
+	public void crashRM2Test() throws DeadlockException, CrashException, InterruptedException, ClassNotFoundException, IOException {
+		int crashLocation = 2;
+		TMClient tm = TMClient.getInstance();
+		
+		int id = tm.start();
+		String location = "MONTREAL";
+		int numCars = 63;
+		int carPrice = 101;
+		
+		carClient.addCars(id, location, numCars, carPrice);
+		
+		boolean result = tm.commit(id);
+		
+		result = false;
+		id = tm.start();
+		carPrice = 102;
+		numCars = 37;
+		carClient.addCars(id, location, numCars, carPrice);
+		int roomPrice = 103;
+		int numRooms = 99;
+		roomClient.addRooms(id, location, numRooms, roomPrice);
+		carClient.setCrashLocation(crashLocation);
+		carClient.setCrashType(true);
+		(new Thread(){
+			public void run(){
+				try {
+					Thread.sleep(50);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				carClient.setCrashLocation(-1);
+			}
+		}).start();
+		
+		result = tm.commit(id);
+		
+
+		assertTrue(result); //transaction passes after retry
+		
+	}
+	
+	@Test
+	public void crashRM3Test() throws DeadlockException, CrashException, InterruptedException, ClassNotFoundException, IOException {
+		int crashLocation = 3;
+		TMClient tm = TMClient.getInstance();
+		
+		int id = tm.start();
+		String location = "MONTREAL";
+		int numCars = 63;
+		int carPrice = 101;
+		
+		carClient.addCars(id, location, numCars, carPrice);
+		
+		boolean result = tm.commit(id);
+		
+		result = false;
+		id = tm.start();
+		carPrice = 102;
+		numCars = 37;
+		carClient.addCars(id, location, numCars, carPrice);
+		int roomPrice = 103;
+		int numRooms = 99;
+		roomClient.addRooms(id, location, numRooms, roomPrice);
+		carClient.setCrashLocation(crashLocation);
+		carClient.setCrashType(true);
+		result = tm.commit(id);
+		
+
+		assertFalse(result); //transaction passes after retry
+		
+	}
+	
 }

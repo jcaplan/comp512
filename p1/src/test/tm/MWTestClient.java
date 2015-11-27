@@ -1,5 +1,6 @@
 package test.tm;
 
+import crash.CrashException;
 import server.Car;
 import server.Customer;
 import server.Flight;
@@ -20,11 +21,13 @@ public class MWTestClient implements MWClientInterface {
 		this.lockManager = lockManager;
 	}
 	
-	public boolean abort(int id){
+	public boolean abort(int id) throws CrashException{
 		boolean result = false;
 		try {
 			result = proxy.abort(id);
-		} catch (Exception e) {
+		} catch (CrashException e) {
+			throw e;
+		} catch (Exception e) {	
 			e.printStackTrace();
 		}
 		return result;
@@ -40,11 +43,13 @@ public class MWTestClient implements MWClientInterface {
 		return result;
 	}
 	
-	public boolean commit(int id){
+	public boolean commit(int id) throws CrashException{
 		boolean result = false;
 		try {
 			result = proxy.commit(id);
-		} catch (Exception e) {
+		} catch (CrashException e) {
+			throw e;
+		} catch (Exception e) {	
 			e.printStackTrace();
 		}
 		return result;
@@ -524,7 +529,21 @@ public class MWTestClient implements MWClientInterface {
 
 
 	public boolean requestVote(int id) {
-		return proxy.requestVote(id);
+		try {
+			return proxy.requestVote(id);
+		} catch (CrashException e) {
+			return false;
+		}
+	}
+
+	@Override
+	public void setCrashLocation(int location) {
+		proxy.setCrashLocation(location);
+	}
+
+	@Override
+	public void setCrashType(boolean isTest) {
+		proxy.setCrashType(isTest);
 	}
 
 

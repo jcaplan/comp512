@@ -1,5 +1,6 @@
 package middleware.client;
 
+import crash.Crash;
 import lockmanager.DeadlockException;
 import lockmanager.LockManager;
 import lockmanager.TrxnObj;
@@ -529,6 +530,18 @@ public class MWClient extends WSClient implements MWClientInterface{
 			return false;
 		}
 	}
+
+	@Override
+	public void setCrashLocation(int location) {
+		proxy.setCrashLocation(location);
+	}
+
+	@Override
+	public void setCrashType(boolean isTest) {
+		proxy.setCrashType(isTest);
+	}
+	
+	
 
 
 }

@@ -331,4 +331,10 @@ public class LockManager
         }
         throw new DeadlockException(waitObj.getXId(), "Sleep timeout...deadlock.");
     }
+    
+    public static void reset(){
+    	lockTable = new TPHashTable(LockManager.TABLE_SIZE);
+        stampTable = new TPHashTable(LockManager.TABLE_SIZE);
+        waitTable = new TPHashTable(LockManager.TABLE_SIZE);
+    }
 }

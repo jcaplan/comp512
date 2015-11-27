@@ -17,6 +17,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import crash.CrashException;
+import crash.TestCrash;
+import server.RMPersistence;
 import server.ResourceManagerImpl;
 import server.ws.ResourceManager;
 
@@ -48,13 +51,15 @@ public class TestTMClient {
 	
 	@Before
 	public void beforeTest() throws ClassNotFoundException, NamingException, IOException{
+
+		RMPersistence.deleteAllRecords();
 		servers.clear();
 		clients.clear();
 		lm = new LockManager();
-		carServer = new ResourceManagerImpl();
-		flightServer = new ResourceManagerImpl();
-		roomServer = new ResourceManagerImpl();
-		custServer = new ResourceManagerImpl();
+		carServer = new ResourceManagerImpl("carRM");
+		flightServer = new ResourceManagerImpl("flightRM");
+		roomServer = new ResourceManagerImpl("roomRM");
+		custServer = new ResourceManagerImpl("custRM");
 		
 		servers.add(carServer);
 		servers.add(flightServer);
@@ -70,15 +75,19 @@ public class TestTMClient {
 		clients.add(flightClient);
 		clients.add(roomClient);
 		clients.add(custClient);
-		TMClient.deleteInstance();
-		TMClient.getInstance().setClients(carClient, flightClient, roomClient, custClient);
-		TMClient.getInstance().setLockManager(lm);
+		resetTM();
 		
 	}
 	
 	
+	private void resetTM() {
+		TMClient.deleteInstance();
+		TMClient.getInstance().setClients(carClient, flightClient, roomClient, custClient);
+		TMClient.getInstance().setLockManager(lm);	
+	}
+
 	@Test
-	public void initTest() throws DeadlockException{
+	public void initTest() throws DeadlockException, CrashException{
 		//Simulating middleware input to TM and RM
 		
 		TMClient tm = TMClient.getInstance();
@@ -110,6 +119,109 @@ public class TestTMClient {
 		result = tm.commit(id);
 		
 		assertTrue(result);
+		
+	}
+	
+	
+	/*
+	 * Test 1: send votes to all RMs... should wait indefinitely...
+	 */
+	@Test
+	public void crashTM1Test() throws DeadlockException, CrashException, InterruptedException {
+		int crashLocation = 1;
+		TMClient tm = TMClient.getInstance();
+		
+		int id = tm.start();
+		String location = "MONTREAL";
+		int numCars = 63;
+		int carPrice = 101;
+		
+		carClient.addCars(id, location, numCars, carPrice);
+		
+		boolean result = tm.commit(id);
+		
+		result = false;
+		id = tm.start();
+		carPrice = 102;
+		numCars = 37;
+		carClient.addCars(id, location, numCars, carPrice);
+		int roomPrice = 103;
+		int numRooms = 99;
+		roomClient.addRooms(id, location, numRooms, roomPrice);
+		tm.setCrash(new TestCrash());
+		tm.setCrashLocation(crashLocation);
+		try{
+			result = tm.commit(id);
+		} catch (CrashException e){
+			System.out.println("commit crashed!");
+		}
+		resetTM();
+		tm = TMClient.getInstance();
+		
+		assertFalse(result); //transaction failed
+		Thread.sleep(6000);
+		
+		//no timeout
+		result = carClient.start(id);
+		assertFalse(result);
+		result = roomClient.start(id);
+		assertFalse(result);
+	}
+	
+	/*
+	 * Partial result committed
+	 */
+	@Test
+	public void crashTM2Test() throws DeadlockException, CrashException, InterruptedException, ClassNotFoundException, IOException {
+		int crashLocation = 2;
+		TMClient tm = TMClient.getInstance();
+		
+		int id = tm.start();
+		String location = "MONTREAL";
+		int numCars = 63;
+		int carPrice = 101;
+		
+		carClient.addCars(id, location, numCars, carPrice);
+		
+		boolean result = tm.commit(id);
+		
+		result = false;
+		id = tm.start();
+		carPrice = 102;
+		numCars = 37;
+		carClient.addCars(id, location, numCars, carPrice);
+		int roomPrice = 103;
+		int numRooms = 99;
+		roomClient.addRooms(id, location, numRooms, roomPrice);
+		tm.setCrash(new TestCrash());
+		tm.setCrashLocation(crashLocation);
+		try{
+			result = tm.commit(id);
+		} catch (CrashException e){
+			System.out.println("commit crashed!");
+		}
+		resetTM();
+		tm = TMClient.getInstance();
+		
+		assertFalse(result); //transaction failed
+		Thread.sleep(6000);
+		
+		//no timeout
+		result = carClient.start(id);
+		assertTrue(result);
+		carClient.abort(id);
+		result = roomClient.start(id);
+		assertFalse(result);
+		
+		//check persistence. should only work for car.
+
+		ResourceManagerImpl newRoomServer = new ResourceManagerImpl("roomRM");
+		assertEquals(0,newRoomServer.queryRooms(id, location));
+		ResourceManagerImpl newCarServer = new ResourceManagerImpl("carRM");
+		id = tm.start();
+		assertEquals(numCars, newCarServer.queryCars(id, location));
+		tm.commit(id);
+		
 		
 	}
 }

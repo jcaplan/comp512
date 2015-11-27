@@ -14,13 +14,19 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import crash.Crash;
+import crash.CrashException;
 import lockmanager.LockManager;
 import middleware.client.MWClientInterface;
 
 public class TMClient {
 
-	private static final int TIMEOUT_DELAY = 15000;
-	private static final int COMMIT_TIMEOUT_SECONDS = 10;
+	private static final int TIMEOUT_DELAY = 5000;
+	private static final int COMMIT_TIMEOUT_SECONDS = 5;
+	
+	private int crashLocation = -1;
+	private Crash crash;
+	
 	HashMap<Integer, HashSet<MWClientInterface>> rmList;
 	HashMap<Integer, TimerTask> timerList;
 	Timer timer;
@@ -103,7 +109,7 @@ public class TMClient {
 		}
 	}
 	
-	public synchronized boolean commit(int id){
+	public synchronized boolean commit(int id) throws CrashException{
 
 		System.out.println("TMClient::commit txn" + id);
 		HashSet<MWClientInterface> rms = rmList.get(id);
@@ -116,23 +122,36 @@ public class TMClient {
 
 		boolean voteResult = prepareCommit(id,rms);
 		
-		//TODO crash here
+		//TODO CRASH LOCATION 1
+		if(crashLocation == 1){
+			crash.crash("TM crashes after collecting all votes");
+		}
+		
 		
 		//TODO log decision
 		
 		//TODO crash here
+		
+		
 		if(voteResult){
 			System.out.println("TMCLIENT:: final vote result: yes");
 			for(MWClientInterface rm : rms){
 				rm.commit(id);
 				removeTxn(id);
 				//TODO crash here
+				if(crashLocation == 2){
+					crash.crash("TM crashes after sending result to 1 RM");
+				}
 			}
 		} else {
 			abort(id);
 		}
 		
 		//TODO crash here
+		
+		if(crashLocation == 3){
+			crash.crash("TM crashses after processing all votes");
+		}
 		//Log here
 		//TODO crash here
 		return voteResult;
@@ -151,7 +170,7 @@ public class TMClient {
 
 	//TODO crash here
 	
-	private boolean prepareCommit(int id, HashSet<MWClientInterface> rms) {
+	private boolean prepareCommit(int id, HashSet<MWClientInterface> rms) throws CrashException {
 		List<FutureTask<Boolean>> taskList = new ArrayList<>();
 
 		 ExecutorService executor = Executors.newFixedThreadPool(rms.size());
@@ -168,6 +187,10 @@ public class TMClient {
 			executor.execute(vote);
 			
 			//TODO crash here
+			if(crashLocation == 4){
+				crash.crash("TM crashes after sending one vote request");
+			}
+			
 		}		
 		
 		
@@ -313,4 +336,11 @@ public class TMClient {
 		return txnsActive == 0;
 	}
 	
+	public void setCrashLocation(int location){
+		crashLocation = location;
+	}
+	
+	public void setCrash(Crash c){
+		crash = c;
+	}
 }

@@ -36,6 +36,7 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
         rmPersistence = new RMPersistence(serviceName);
         m_itemHT = rmPersistence.recoverRMTable();
         tmServer.setTxnWriteList(rmPersistence.recoverAllWriteList());
+        tmServer.setTable(m_itemHT);
     }
 
 	@Override
@@ -44,7 +45,7 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
         //TODO crash here
         
 		synchronized(m_itemHT){
-			aborted =  tmServer.abortTxn(id, m_itemHT);
+			aborted =  tmServer.abortTxn(id);
 		}
         if (aborted)
             try {
@@ -604,6 +605,7 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
         	// wait for commit
         	rmPersistence.saveTxnSnapshot(id,tmServer.getLastCommittedVersionOfModifiedData(id),m_itemHT);
             rmPersistence.saveTxnRecord(id,"yes");
+            tmServer.requestVote(id);
         } catch (Exception e) {
             e.printStackTrace();
             abort(id);

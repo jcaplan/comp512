@@ -18,8 +18,13 @@ public class RMPersistence {
     public RMPersistence(String rmType) throws IOException {
         this.rmType = rmType;
         txnRecords = new HashMap<>();
-        masterRecordPath = "./" + rmType + "_master.txt";
-
+        masterRecordPath = "./record/" + rmType + "_master.txt";
+        
+        File dir = new File("./record/");
+        if(!dir.exists()){
+        	dir.mkdir();
+        }
+        
         File f = new File(masterRecordPath);
         if (!f.exists()){
             FileWriter fileWriter = new FileWriter(f, false);
@@ -28,12 +33,12 @@ public class RMPersistence {
             fileWriter.close();
         }
 
-        tablePath1 = "./" + rmType + "_table1.dat";
-        tablePath2 = "./" + rmType + "_table2.dat";
-        txnWriteListPath1 = "./" + rmType + "_writeList1.dat";
-        txnWriteListPath2 = "./" + rmType + "_writeList2.dat";
+        tablePath1 = "./record/" + rmType + "_table1.dat";
+        tablePath2 = "./record/" + rmType + "_table2.dat";
+        txnWriteListPath1 = "./record/" + rmType + "_writeList1.dat";
+        txnWriteListPath2 = "./record/" + rmType + "_writeList2.dat";
 
-        recordLocation =  "./" + rmType + "_record.dat";
+        recordLocation =  "./record/" + rmType + "_record.dat";
 
         f = new File(recordLocation);
         if (!f.exists()){
@@ -172,4 +177,24 @@ public class RMPersistence {
     public void setTestShadowing(){
         this.testShadowing = true;
     }
+    
+    public static void deleteAllRecords() {
+    	 File dir = new File("./record/");
+    	 deleteFolder(dir);
+    }
+    
+    private static void deleteFolder(File folder) {
+        File[] files = folder.listFiles();
+        if(files!=null) { //some JVMs return null for empty dirs
+            for(File f: files) {
+                if(f.isDirectory()) {
+                    deleteFolder(f);
+                } else {
+                    f.delete();
+                }
+            }
+        }
+        folder.delete();
+    }
+
 }

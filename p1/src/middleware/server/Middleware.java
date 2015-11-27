@@ -14,6 +14,8 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
+import crash.CrashException;
+import crash.WSCrash;
 import lockmanager.DeadlockException;
 import lockmanager.LockManager;
 import server.*;
@@ -162,6 +164,7 @@ public class Middleware implements ResourceManager {
 				custClient);
 		TMClient.getInstance().setLockManager(lockManager);
 
+		TMClient.getInstance().setCrash(new WSCrash());
 	}
 
 	@Override
@@ -171,7 +174,12 @@ public class Middleware implements ResourceManager {
 
 	@Override
 	public boolean commit(int id) {
-		boolean result = TMClient.getInstance().commit(id);
+		boolean result = false;
+		try {
+			result = TMClient.getInstance().commit(id);
+		} catch (CrashException e) {
+			e.printStackTrace();
+		}
 		return result;
 	}
 

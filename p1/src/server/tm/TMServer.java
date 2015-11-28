@@ -114,6 +114,10 @@ public class TMServer {
 	public synchronized boolean abortTxn(int id){
 		System.out.println(">>>>>>>>>>>>>>>>>" + type + "::abort txn" + id);
         removeTimerTask(id);
+        if (!isTxnActive(id)){
+            Set<String> txnRecord = rmPersistence.loadTxnRecord(id);
+            return txnRecord.contains("abort");
+        }
         RMHashtable lastCommittedTable;
         try {
             lastCommittedTable = rmPersistence.recoverRMTable();
@@ -121,9 +125,9 @@ public class TMServer {
             e.printStackTrace();
             return false;
         }
-        
 
-        
+
+
         for (String key : txnWriteList.get(id)){
             if (lastCommittedTable.containsKey(key))
                 table.put(key,lastCommittedTable.get(key));

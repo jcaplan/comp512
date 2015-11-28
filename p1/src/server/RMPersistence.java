@@ -100,6 +100,21 @@ public class RMPersistence {
 
     }
 
+    public Set<String> loadTxnRecord(int xid){
+        HashMap<Integer,Set<String>> savedRecords;
+        try {
+            savedRecords = (HashMap<Integer, Set<String>>) readObjectFromPath(recordLocation);
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+            return new HashSet<>();
+        }
+
+        if (savedRecords.containsKey(xid))
+            return savedRecords.get(xid);
+        else
+            return new HashSet<>();
+    }
+
 
     public synchronized boolean saveRedoCommitInfo(Map<String,RMItem> redoInfo)  {
         try{

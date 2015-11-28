@@ -55,7 +55,7 @@ public class TestRMPersistence {
         persistence.saveTxnRecord(5,"start");
         persistence.saveTxnRecord(5,"yes");
 
-        Set<Integer> activeTxns = persistence.loadAllActiveTxns();
+        Set<Integer> activeTxns = persistence.redoLastCommit();
         assertEquals(2,activeTxns.size());
         assertTrue(activeTxns.contains(2));
         assertTrue(activeTxns.contains(5));
@@ -97,12 +97,12 @@ public class TestRMPersistence {
         Map<String,RMItem> changeToApply1 = new HashMap<>();
         changeToApply1.put(car1.getKey(),car1);
         Map<String,RMItem> changeToApply2 = new HashMap<>();
-        persistence.applyChangeToStorage(changeToApply1);
+        persistence.applyChangeToShadow(changeToApply1);
 
         changeToApply2.put(car2.getKey(), car2);
         changeToApply2.put(car3.getKey(),car3);
         persistence.setTestShadowing();
-        assertTrue(!persistence.applyChangeToStorage(changeToApply2));
+        assertTrue(!persistence.applyChangeToShadow(changeToApply2));
 
         persistence = new RMPersistence(rmType);
         RMHashtable recoveredTable = persistence.recoverRMTable();

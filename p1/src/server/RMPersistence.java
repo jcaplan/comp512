@@ -43,19 +43,27 @@ public class RMPersistence {
     }
 
     // don't need synchronized because it's called in constructor only
-    public Set<Integer> loadAllActiveTxns() throws IOException, ClassNotFoundException {
+    public int redoLastCommit() throws IOException, ClassNotFoundException {
         HashMap<Integer, Set<String>> txnRecords =  (HashMap<Integer, Set<String>>) readObjectFromPath(recordLocation);
-        Set<Integer> activeTxns = new HashSet<>();
+        int txnToRedo = -1; // -1 means no txn needs undo
         for (int id : txnRecords.keySet()){
             Set<String> records = txnRecords.get(id);
             if (!records.contains("commit") && records.contains("yes"))
-                activeTxns.add(id);
+                txnToRedo = id;
             // abort any transactions that haven't voted
             else if(!records.contains("commit") && !records.contains("abort"))
                 records.add("abort");
         }
+
+        Map<String, RMItem> changeToRedo = loadRedoCommitInfo();
+        boolean redoSucceed = applyChangeToShadow(changeToRedo);
+        if (!redoSucceed) {
+            txnRecords.get(txnToRedo).add("abort");
+            txnToRedo = -1;
+        }
+
         writeObjectToPath(txnRecords, recordLocation);
-        return activeTxns;
+        return txnToRedo;
     }
 
     public synchronized boolean saveTxnRecord(int xid, String record) {
@@ -81,35 +89,12 @@ public class RMPersistence {
 
     }
 
-    public synchronized boolean removeTxnRecord(int xid){
+
+    public synchronized boolean saveRedoCommitInfo(Map<String,RMItem> redoInfo)  {
         try{
+            writeObjectToPath(redoInfo,redoInfoPath);
 
-            HashMap<Integer,Set<String>> savedRecords = (HashMap<Integer, Set<String>>) readObjectFromPath(recordLocation);
-
-            savedRecords.remove(xid);
-            writeObjectToPath(savedRecords,recordLocation);
-        }catch (IOException | ClassNotFoundException e){
-            e.printStackTrace();
-            return false;
-        }
-        return true;
-    }
-
-    public synchronized boolean saveRedoCommitInfo(int xid, Map<String,RMItem> redoInfo)  {
-        try{
-
-            File f = new File(redoInfoPath);
-            HashMap<Integer, Map<String,RMItem>> allRedoInfo;
-            if (f.exists()) {
-                allRedoInfo = (HashMap<Integer, Map<String, RMItem>>) readObjectFromPath(redoInfoPath);
-            }
-            else
-                allRedoInfo = new HashMap<>();
-
-            allRedoInfo.put(xid, redoInfo);
-            writeObjectToPath(allRedoInfo,redoInfoPath);
-
-        }catch (IOException | ClassNotFoundException e){
+        }catch (IOException e){
             e.printStackTrace();
             return false;
         }
@@ -117,45 +102,72 @@ public class RMPersistence {
 
     }
 
-    public Map<Integer, Map<String, RMItem>> loadRedoCommitInfo(){
+    private Map<String, RMItem> loadRedoCommitInfo(){
         File f = new File(redoInfoPath);
-        HashMap<Integer, Map<String,RMItem>> allRedoInfo;
-        if (f.exists())
+        Map<String,RMItem> redoInfo;
+        if (f.exists()){
             try {
-                allRedoInfo = (HashMap<Integer, Map<String, RMItem>>) readObjectFromPath(redoInfoPath);
+                redoInfo = (Map<String, RMItem>) readObjectFromPath(redoInfoPath);
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
-                allRedoInfo = new HashMap<>();
+                redoInfo = new HashMap<>();
             }
+        }
         else
-            allRedoInfo = new HashMap<>();
+            redoInfo = new HashMap<>();
 
-        return allRedoInfo;
+        return redoInfo;
     }
 
-    public synchronized boolean applyChangeToStorage(Map<String,RMItem> changeToApply){
-        try {
-            RMHashtable table = recoverRMTable();
-            for (String key : changeToApply.keySet()){
-                if (changeToApply.get(key) == null)
-                    table.remove(key);
-                else
-                    table.put(key,changeToApply.get(key));
+    public synchronized boolean applyChangeToShadow(Map<String, RMItem> changeToApply){
+        if (changeToApply.size()>0)
+            try {
+                BufferedReader br = new BufferedReader(new FileReader(masterRecordPath));
+                String master = br.readLine();
+                String shadowCopyPath = master.contains("1")? tablePath2 : tablePath1;
+                RMHashtable table = (RMHashtable) readObjectFromPath(shadowCopyPath);
+                for (String key : changeToApply.keySet()){
+                    if (changeToApply.get(key) == null) {
+                        table.remove(key);
+                    }
+                    else {
+                        table.put(key,changeToApply.get(key));
+                    }
+                }
+                writeObjectToPath(table,shadowCopyPath);
+
+            } catch (IOException | ClassNotFoundException e) {
+                e.printStackTrace();
+                return false;
             }
+        return true;
+    }
 
+    public synchronized boolean changeShadowPointer(){
+       try{
+           BufferedReader br = new BufferedReader(new FileReader(masterRecordPath));
+           String master = br.readLine();
+           File masterRecord = new File(masterRecordPath);
+           FileWriter fileWriter = new FileWriter(masterRecord, false);
+           fileWriter.write(master.contains("1")? "2" : "1");
+           fileWriter.close();
+       }catch (IOException e){
+           return false;
+       }
+        return true;
+    }
 
+    public synchronized boolean prepareFreshShadowCopy() {
+        try{
             BufferedReader br = new BufferedReader(new FileReader(masterRecordPath));
             String master = br.readLine();
-            writeObjectToPath(table,master.contains("1")? tablePath2 : tablePath1);
-            if (testShadowing)
-                return false;
+            String committedTablePath, shadowTablePath;
+            committedTablePath = master.contains("1")? tablePath1 : tablePath2;
+            shadowTablePath = master.contains("1")? tablePath2 : tablePath1;
 
-            File masterRecord = new File(masterRecordPath);
-            FileWriter fileWriter = new FileWriter(masterRecord, false);
-            fileWriter.write(master.contains("1")? "2" : "1");
-            fileWriter.close();
-
-        } catch (IOException | ClassNotFoundException e) {
+            RMHashtable committedTable = (RMHashtable) readObjectFromPath(committedTablePath);
+            writeObjectToPath(committedTable, shadowTablePath);
+        }catch (IOException | ClassNotFoundException e){
             e.printStackTrace();
             return false;
         }

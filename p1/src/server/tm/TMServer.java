@@ -22,18 +22,19 @@ public class TMServer {
     HashMap<Integer, TimerTask> timerList;
     Timer timer;
     private RMHashtable table;
-    private Map<Integer, Map<String, RMItem>> redoCommitInfo;
 
 	public TMServer(String rmType) throws IOException, ClassNotFoundException {
 		txnWriteList = new HashMap<>();
         rmPersistence = new RMPersistence(rmType);
-        // only transactions with yes vote but no commit/abort are loaded
-        activeTnxs = rmPersistence.loadAllActiveTxns();
+        // AT MOST ONE txn with yes vote but no commit/abort are loaded
+        activeTnxs = new HashSet<>();
+        int txnRedo = rmPersistence.redoLastCommit();
+        if (txnRedo > 0){
+            activeTnxs.add(txnRedo);
+        }
         timerList = new HashMap<>();
         timer = new Timer();
         this.table = rmPersistence.recoverRMTable();
-        redoCommitInfo = rmPersistence.loadRedoCommitInfo();
-
 	}
 
     public RMHashtable getCommittedTable(){
@@ -47,11 +48,14 @@ public class TMServer {
     public boolean prepareCommit(int id){
         if (!isTxnActive(id))
             return false;
+        if (!rmPersistence.prepareFreshShadowCopy())
+            return false;
         Map<String,RMItem> redoInfo = new HashMap<>();
 
         for (String k : txnWriteList.get(id))
             redoInfo.put(k, (RMItem) table.get(k));
-        boolean saveSuccess = rmPersistence.saveRedoCommitInfo(id,redoInfo) && rmPersistence.saveTxnRecord(id, "yes");
+        boolean saveSuccess = rmPersistence.saveRedoCommitInfo(redoInfo) &&
+                 rmPersistence.applyChangeToShadow(redoInfo) && rmPersistence.saveTxnRecord(id, "yes");
 
         removeTimerTask(id);
         System.out.println("TMServer:: vote received for txn " + id + ", wait indefinitely for result");
@@ -89,23 +93,12 @@ public class TMServer {
 		}
         removeTimerTask(id);
 
-        Map<String, RMItem> changeToApply;
-        if (redoCommitInfo.containsKey(id)){
-            changeToApply = redoCommitInfo.get(id);
-        }
-        else{
-            changeToApply = new HashMap<>();
-            for (String key : txnWriteList.get(id))
-                changeToApply.put(key, (RMItem) table.get(key));
-        }
-
-        boolean applySuccessful = rmPersistence.applyChangeToStorage(changeToApply);
-        if (!applySuccessful) {
+        boolean committedToStorage = rmPersistence.changeShadowPointer();
+        if (!committedToStorage) {
             return false;
         }
         txnWriteList.remove(id);
         activeTnxs.remove(id);
-        redoCommitInfo.remove(id);
         return rmPersistence.saveTxnRecord(id,"commit");
 	}
 
@@ -127,7 +120,6 @@ public class TMServer {
         }
         txnWriteList.remove(id);
         activeTnxs.remove(id);
-        redoCommitInfo.remove(id);
         return rmPersistence.saveTxnRecord(id,"abort");
 	}
 

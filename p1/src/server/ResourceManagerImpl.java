@@ -23,12 +23,10 @@ import server.tm.TMServer;
 @WebService(endpointInterface = "server.ws.ResourceManager")
 public class ResourceManagerImpl implements server.ws.ResourceManager {
 
-	protected RMHashtable m_itemHT;
+	protected RMHashtable m_itemHT = new RMHashtable();
     private TMServer tmServer;
-    private RMPersistence rmPersistence;
 	private int crashLocation = -1;
 	private Crash crash;
-	
 	Object syncLock = new Object();
 	// Basic operations on RMItem //
 
@@ -38,11 +36,8 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
     }
 
     public ResourceManagerImpl(String serviceName) throws IOException, ClassNotFoundException {
-        tmServer = new TMServer();
-        rmPersistence = new RMPersistence(serviceName);
-        m_itemHT = rmPersistence.recoverRMTable();
-        tmServer.setTxnWriteList(rmPersistence.recoverAllWriteList());
-        tmServer.setTable(m_itemHT);
+        tmServer = new TMServer(serviceName);
+        m_itemHT = tmServer.getCommittedTable();
     }
 
 	@Override
@@ -57,13 +52,6 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 		synchronized(m_itemHT){
 			aborted =  tmServer.abortTxn(id);
 		}
-        if (aborted)
-            try {
-                rmPersistence.saveTxnRecord(id,"abort");
-            } catch (IOException | ClassNotFoundException e) {
-                e.printStackTrace();
-                aborted = false;
-            }
         return aborted;
 	}
 	
@@ -86,12 +74,6 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 		synchronized(m_itemHT){
 			committed =  tmServer.commitTxn(id);
 		}
-        if (committed)
-			try {
-				rmPersistence.saveTxnRecord(id,"commit");
-			} catch (ClassNotFoundException | IOException e) {
-				e.printStackTrace();
-			}
         return committed;
 	}
 	
@@ -105,59 +87,68 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 
 	private void setPrice(int id, ReservableItem item, int price){
 		//Checks that the transaction ID is valid...
-		if(tmServer.writeData(id, item.getKey(), item)){
-			item.setPrice(price);
-		}
+		if (tmServer.isTxnActive(id)){
+            tmServer.modifyData(id, item.getKey());
+            item.setPrice(price);
+        }
+
 	}
 	
 	private void setCount(int id, ReservableItem item, int count){
-		if(tmServer.writeData(id, item.getKey(), item)){
-			item.setCount(count);
-		}
+        if (tmServer.isTxnActive(id)){
+            tmServer.modifyData(id, item.getKey());
+            item.setCount(count);
+        }
 	}
 	
 	private void setReserved(int id, ReservableItem item, int reserved){
-		if(tmServer.writeData(id, item.getKey(), item)){
-			item.setReserved(reserved);
-		}
+        if (tmServer.isTxnActive(id)){
+            tmServer.modifyData(id, item.getKey());
+            item.setReserved(reserved);
+        }
 	}
 	
 	private void custReserve(int id, Customer cust, String key, String location, int  price){
 		ReservedItem item = cust.getReservedItem(key);
-		
-		if(tmServer.writeData(id, cust.getKey(), item)){
-			cust.reserve(key, location, price);
-		}
+
+        if (tmServer.isTxnActive(id)) {
+            tmServer.modifyData(id, cust.getKey());
+            cust.reserve(key, location, price);
+        }
 	}
 	
 	// Read a data item.
 	private RMItem readData(int id, String key) {
+        RMItem result = null;
 		synchronized (m_itemHT) {
-			return (RMItem) m_itemHT.get(key);
+            if (tmServer.isTxnActive(id))
+			    result =  (RMItem) m_itemHT.get(key);
 		}
+        return result;
 	}
 
 	// Write a data item.
 	private void writeData(int id, String key, RMItem value) {
-		boolean result;
 		synchronized (m_itemHT) {
 			TMServer tm = tmServer;
-			if(tm.writeData(id,key,(RMItem)m_itemHT.get(key))){
-				m_itemHT.put(key, value);
-			}
+            if (tm.isTxnActive(id)){
+                tm.modifyData(id, key);
+                m_itemHT.put(key, value);
+            }
 		}
 	}
 
 	// Remove the item out of storage.
 	protected RMItem removeData(int id, String key) {
+        RMItem result = null;
 		synchronized (m_itemHT) {
 			TMServer tm = tmServer;
-			if(tm.removeData(id,key, (RMItem) m_itemHT.get(key))){
-				return (RMItem) m_itemHT.remove(key);
-			} else {
-				return null;
-			}
+			if (tm.isTxnActive(id)){
+                tm.modifyData(id,key);
+                result =  (RMItem) m_itemHT.remove(key);
+            }
 		}
+        return result;
 	}
 
 	// Basic operations on ReservableItem //
@@ -611,26 +602,17 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 	@Override
 	public boolean requestVote(int id) throws CrashException {
 
-		
-		
-		
 		//TODO  before record
 		if(crashLocation == 3){
 			crash.crash("RM crashes before returning vote");
 		}
 		//If(!tm.hasTransaction(id) return false;
 		
-        try {
-        	////TODO rmPersistance should not change shadow pointer here...
+
         	// wait for commit
-        	rmPersistence.saveTxnSnapshot(id,tmServer.getLastCommittedVersionOfModifiedData(id),m_itemHT);
-            rmPersistence.saveTxnRecord(id,"yes");
-            tmServer.requestVote(id);
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-            abort(id);
-            return false;
-        } 
+        boolean canCommit = tmServer.prepareCommit(id);
+        if (!canCommit)
+            tmServer.abortTxn(id);
         
         // TODO  after sending answer...
         // start a new thread, wait half a second, then thread exits entire program
@@ -654,7 +636,7 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
         }
         
         
-        return true;
+        return canCommit;
 	}
 	
 	@Override

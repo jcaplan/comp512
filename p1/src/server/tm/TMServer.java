@@ -1,112 +1,136 @@
 package server.tm;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import server.RMHashtable;
 import server.RMItem;
+import server.RMPersistence;
 
 public class TMServer {
 
-	private int TIMEOUT_DELAY = 60000;
-	private HashMap<Integer,WriteList> txnWriteList;
-	RMHashtable table;
-	HashMap<Integer, TimerTask> timerList;
-	Timer timer;
+    //txnWriteList store keys of items that a txn has written
+	private HashMap<Integer,Set<String>> txnWriteList;
+    private RMPersistence rmPersistence;
+    private Set<Integer> activeTnxs;
+    private static int TIMEOUT_DELAY = 60000;
+    HashMap<Integer, TimerTask> timerList;
+    Timer timer;
+    private RMHashtable table;
+    private Map<Integer, Map<String, RMItem>> redoCommitInfo;
 
-	public TMServer(){
+	public TMServer(String rmType) throws IOException, ClassNotFoundException {
 		txnWriteList = new HashMap<>();
-		timerList = new HashMap<>();
-		timer = new Timer();
+        rmPersistence = new RMPersistence(rmType);
+        // only transactions with yes vote but no commit/abort are loaded
+        activeTnxs = rmPersistence.loadAllActiveTxns();
+        timerList = new HashMap<>();
+        timer = new Timer();
+        this.table = rmPersistence.recoverRMTable();
+        redoCommitInfo = rmPersistence.loadRedoCommitInfo();
+
 	}
 
-	public boolean writeData(int id, String key, RMItem value) {
-		resetTimer(id);
-		
-		WriteList writeList = txnWriteList.get(id);
-		if(writeList == null){
-			return false;
-		}
-		writeList.writeItem(key, value);
-		return true;
+    public RMHashtable getCommittedTable(){
+        return this.table;
+    }
+
+    public boolean isTxnActive(int id){
+        return activeTnxs.contains(id);
+    }
+
+    public boolean prepareCommit(int id){
+        if (!isTxnActive(id))
+            return false;
+        Map<String,RMItem> redoInfo = new HashMap<>();
+
+        for (String k : txnWriteList.get(id))
+            redoInfo.put(k, (RMItem) table.get(k));
+        boolean saveSuccess = rmPersistence.saveRedoCommitInfo(id,redoInfo) && rmPersistence.saveTxnRecord(id, "yes");
+
+        removeTimerTask(id);
+        System.out.println("TMServer:: vote received for txn " + id + ", wait indefinitely for result");
+
+        return saveSuccess;
+    }
+
+	public void modifyData(int id, String key) {
+        resetTimer(id);
+        if (txnWriteList.containsKey(id))
+		    txnWriteList.get(id).add(key);
 	}
 
 	public boolean start(int id){
 		System.out.println("TMServer::start txn " + id);
-		if(txnWriteList.containsKey(id)){
+		if(isTxnActive(id)){
 			return false;
 		} else {
-			txnWriteList.put(id, new WriteList());
-			TimerTask abortTxn = new AbortTxn(id);
-			timerList.put(id, abortTxn);
-			timer.schedule(abortTxn, TIMEOUT_DELAY);
+			txnWriteList.put(id, new HashSet<String>());
+            activeTnxs.add(id);
+            rmPersistence.saveTxnRecord(id,"start");
+            TimerTask abortTxn = new AbortTxn(id);
+            timerList.put(id, abortTxn);
+            timer.schedule(abortTxn, TIMEOUT_DELAY);
 			return true;
 		}
 	}
 	
-	
-	
 
-	public boolean removeData(int id, String key, RMItem value) {
-		resetTimer(id);
-		
-		WriteList writeList = txnWriteList.get(id);
-		if(writeList == null){
-			return false;
-		}
-		
-		if(value != null){
-			return writeList.writeItem(key, value);
-		}
-	
-		return false;
-	}
 	
 	public boolean commitTxn(int id){
 		System.out.println("TMServer::commit txn" + id);
-		if(!txnWriteList.containsKey(id)){
+		if(!isTxnActive(id)){
 			return false;
 		}
-		removeTimerTask(id);
-		txnWriteList.remove(id);
-		return true;
+        removeTimerTask(id);
+
+        Map<String, RMItem> changeToApply;
+        if (redoCommitInfo.containsKey(id)){
+            changeToApply = redoCommitInfo.get(id);
+        }
+        else{
+            changeToApply = new HashMap<>();
+            for (String key : txnWriteList.get(id))
+                changeToApply.put(key, (RMItem) table.get(key));
+        }
+
+        boolean applySuccessful = rmPersistence.applyChangeToStorage(changeToApply);
+        if (!applySuccessful) {
+            return false;
+        }
+        txnWriteList.remove(id);
+        activeTnxs.remove(id);
+        return rmPersistence.saveTxnRecord(id,"commit");
 	}
-	
 
 	public synchronized boolean abortTxn(int id){
 		System.out.println(">>>>>>>>>>>>>>>>>TMServer::abort txn" + id);
-		WriteList writeList = txnWriteList.get(id);
-		
-		if(writeList == null){
-			return false;
-		}
-		
-
-		removeTimerTask(id);
-		HashMap<String,RMItem> map = writeList.writeList;
-		for(String key : map.keySet()){
-			if(map.get(key)!= null){
-				table.put(key, map.get(key));
-			} else {
-				System.out.println("!!!!!!>>>>>>>!!!!!!TXN" + id + " removes " + key);
-				table.remove(key);
-			}
-			
-		}	
-		txnWriteList.remove(id);
-		return true;
+        removeTimerTask(id);
+        RMHashtable lastCommittedTable;
+        try {
+            lastCommittedTable = rmPersistence.recoverRMTable();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+            return false;
+        }
+        for (String key : txnWriteList.get(id)){
+            if (lastCommittedTable.containsKey(key))
+                table.put(key,lastCommittedTable.get(key));
+            else
+                table.remove(key);
+        }
+        txnWriteList.remove(id);
+        activeTnxs.remove(id);
+        redoCommitInfo.remove(id);
+        return rmPersistence.saveTxnRecord(id,"abort");
 	}
 
-    public WriteList getLastCommittedVersionOfModifiedData(int id){
-        return txnWriteList.get(id);
-    }
-	
-	public void setTxnWriteList(HashMap<Integer,WriteList> recoveredTxnWriteList){
-        this.txnWriteList = recoveredTxnWriteList;
-    }
-	
-	
+
 	private class AbortTxn extends TimerTask {
 		int id;
 		
@@ -123,10 +147,6 @@ public class TMServer {
 	}
 
 
-	public void setTable(RMHashtable m_itemHT) {
-		table = m_itemHT;
-	}
-	
 	private void resetTimer(int id) {
 		timerList.get(id).cancel();
 		TimerTask abortTxn = new AbortTxn(id);
@@ -142,12 +162,6 @@ public class TMServer {
 			timerList.remove(id);
 		}	
 	}
-
-	public void requestVote(int id) {
-		removeTimerTask(id);
-		System.out.println("TMServer:: vote received for txn " + id + ", wait indefinitely for result");
-	}
-	
 	public void setTimeout(int timeout){
 		TIMEOUT_DELAY = timeout;
 	}

@@ -43,6 +43,8 @@ Upon startup:
 		abort txn;
 	}
 
+	if(tm.votedYest(txn) && !tm.committed(txn)
+
 Upon start(id):
 Upon commit(id):
 Upon abort(id):

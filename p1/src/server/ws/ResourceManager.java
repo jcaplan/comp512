@@ -18,7 +18,6 @@ package server.ws;
 
 import lockmanager.DeadlockException;
 
-import java.io.IOException;
 import java.util.*;
 
 import javax.jws.WebService;
@@ -170,7 +169,7 @@ public interface ResourceManager {
     
     @WebMethod
     public boolean commit(int id) throws CrashException;
-    
+
     @WebMethod 
     public boolean abort(int id) throws CrashException;
     

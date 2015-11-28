@@ -143,12 +143,12 @@ public class RMPersistence {
                     table.put(key,changeToApply.get(key));
             }
 
-            if (testShadowing)
-                return false;
 
             BufferedReader br = new BufferedReader(new FileReader(masterRecordPath));
             String master = br.readLine();
             writeObjectToPath(table,master.contains("1")? tablePath2 : tablePath1);
+            if (testShadowing)
+                return false;
 
             File masterRecord = new File(masterRecordPath);
             FileWriter fileWriter = new FileWriter(masterRecord, false);

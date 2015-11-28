@@ -105,6 +105,7 @@ public class TMServer {
         }
         txnWriteList.remove(id);
         activeTnxs.remove(id);
+        redoCommitInfo.remove(id);
         return rmPersistence.saveTxnRecord(id,"commit");
 	}
 

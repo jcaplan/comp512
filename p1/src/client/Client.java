@@ -745,11 +745,12 @@ public class Client extends client.WSClient {
 				wrongNumber();
 				break;
 			}
-			int rm = getInt(arguments.elementAt(1));
-			int loc = getInt(arguments.elementAt(2));
-			System.out.println("crashing RM");
+			
 			try{
-				proxy.crashRM(rm,loc);
+				int rm = getInt(arguments.elementAt(1));
+				int loc = getInt(arguments.elementAt(2));
+				System.out.println("crashing RM");
+				proxy.setCrashRM(rm,loc);
 			} catch (Exception e) {
 				System.out.println("EXCEPTION: ");
 				System.out.println(e.getMessage());
@@ -761,10 +762,11 @@ public class Client extends client.WSClient {
 				wrongNumber();
 				break;
 			}
-			loc = getInt(arguments.elementAt(1));
-			System.out.println("crashing RM");
+			
 			try{
-				proxy.crashTM(loc);
+				int loc = getInt(arguments.elementAt(1));
+				System.out.println("crashing RM");
+				proxy.setCrashTM(loc);
 			} catch (Exception e) {
 				System.out.println("EXCEPTION: ");
 				System.out.println(e.getMessage());

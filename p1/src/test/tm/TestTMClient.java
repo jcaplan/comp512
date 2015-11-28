@@ -93,7 +93,8 @@ public class TestTMClient {
 	@Test
 	public void initTest() throws DeadlockException, CrashException{
 		//Simulating middleware input to TM and RM
-		
+		carServer.setTimeout(60000);
+		roomServer.setTimeout(60000);
 		TMClient tm = TMClient.getInstance();
 		
 		int id = tm.start();
@@ -358,9 +359,15 @@ public class TestTMClient {
 		 * RM crashes before completing abort
 		 */
 		
+
+
+		
+		
 		int crashLocation = 1;
 		TMClient tm = TMClient.getInstance();
-		
+		carServer.setTimeout(120000);
+		roomServer.setTimeout(120000);
+		tm.setTimeout(120000);
 		int id = tm.start();
 		String location = "MONTREAL";
 		int numCars = 63;
@@ -389,6 +396,7 @@ public class TestTMClient {
 				}
 				try {
 					((MWTestClient) carClient).setRM(new ResourceManagerImpl("carRM"));
+					System.out.println("RM back up!");
 				} catch (ClassNotFoundException | IOException e) {
 					e.printStackTrace();
 				}

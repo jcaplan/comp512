@@ -39,6 +39,17 @@ public class RMPersistence {
             HashMap<Integer,Set<String>> emptyRecord = new HashMap<>();
             writeObjectToPath(emptyRecord,recordLocation);
         }
+        f = new File(tablePath1);
+        if(!f.exists()){
+        	RMHashtable table = new RMHashtable();
+        	writeObjectToPath(table,tablePath1);
+        }
+        f = new File(tablePath2);
+        if(!f.exists()){
+        	RMHashtable table = new RMHashtable();
+        	writeObjectToPath(table,tablePath2);
+        }
+        
 
     }
 

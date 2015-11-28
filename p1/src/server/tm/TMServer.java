@@ -121,6 +121,9 @@ public class TMServer {
             e.printStackTrace();
             return false;
         }
+        
+
+        
         for (String key : txnWriteList.get(id)){
             if (lastCommittedTable.containsKey(key))
                 table.put(key,lastCommittedTable.get(key));

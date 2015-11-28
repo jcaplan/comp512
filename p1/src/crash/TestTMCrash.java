@@ -12,10 +12,7 @@ public class TestTMCrash implements Crash {
 
 	@Override
 	public void crash(String message) throws CrashException {
-		TMClient.deleteInstance();
-		LockManager.reset();
-		throw new CrashException(message);
-		
+		throw new CrashException(message);	
 	}
 
 }

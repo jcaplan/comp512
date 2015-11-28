@@ -21,6 +21,10 @@ public class MWTestClient implements MWClientInterface {
 		this.lockManager = lockManager;
 	}
 	
+	public synchronized void setRM(ResourceManagerImpl rm){
+		this.proxy = rm;
+	}
+	
 	public boolean abort(int id) throws CrashException{
 		boolean result = false;
 		try {
@@ -29,6 +33,7 @@ public class MWTestClient implements MWClientInterface {
 			throw e;
 		} catch (Exception e) {	
 			e.printStackTrace();
+			throw new CrashException(e.getMessage());
 		}
 		return result;
 	}

@@ -23,10 +23,11 @@ public class TMServer {
     Timer timer;
     private RMHashtable table;
     private Map<Integer, Map<String, RMItem>> redoCommitInfo;
-
+    String type;
 	public TMServer(String rmType) throws IOException, ClassNotFoundException {
 		txnWriteList = new HashMap<>();
         rmPersistence = new RMPersistence(rmType);
+        type = rmType;
         // only transactions with yes vote but no commit/abort are loaded
         activeTnxs = rmPersistence.loadAllActiveTxns();
         timerList = new HashMap<>();
@@ -54,7 +55,7 @@ public class TMServer {
         boolean saveSuccess = rmPersistence.saveRedoCommitInfo(id,redoInfo) && rmPersistence.saveTxnRecord(id, "yes");
 
         removeTimerTask(id);
-        System.out.println("TMServer:: vote received for txn " + id + ", wait indefinitely for result");
+        System.out.println(type + "::" + " vote received for txn " + id + ", wait indefinitely for result");
 
         return saveSuccess;
     }
@@ -65,9 +66,11 @@ public class TMServer {
 		    txnWriteList.get(id).add(key);
 	}
 
-	public boolean start(int id){
-		System.out.println("TMServer::start txn " + id);
+	public synchronized boolean start(int id){
+		System.out.println(type + "::" + "start txn " + id);
 		if(isTxnActive(id)){
+			System.out.println(type + "::" + "transaction already running");
+			System.out.println(activeTnxs);
 			return false;
 		} else {
 			txnWriteList.put(id, new HashSet<String>());
@@ -82,8 +85,8 @@ public class TMServer {
 	
 
 	
-	public boolean commitTxn(int id){
-		System.out.println("TMServer::commit txn" + id);
+	public synchronized boolean commitTxn(int id){
+		System.out.println(type + "::" + "commit txn" + id);
 		if(!isTxnActive(id)){
 			return false;
 		}
@@ -101,15 +104,17 @@ public class TMServer {
 
         boolean applySuccessful = rmPersistence.applyChangeToStorage(changeToApply);
         if (!applySuccessful) {
+        	System.out.println(type + "::" + "applyChangeToStorage failed");
             return false;
         }
         txnWriteList.remove(id);
         activeTnxs.remove(id);
+        System.out.println("active: " + activeTnxs);
         return rmPersistence.saveTxnRecord(id,"commit");
 	}
 
 	public synchronized boolean abortTxn(int id){
-		System.out.println(">>>>>>>>>>>>>>>>>TMServer::abort txn" + id);
+		System.out.println(">>>>>>>>>>>>>>>>>" + type + "::abort txn" + id);
         removeTimerTask(id);
         RMHashtable lastCommittedTable;
         try {
@@ -141,7 +146,7 @@ public class TMServer {
 		@Override
 		public void run() {
 			abortTxn(id);
-			System.err.println("TMServer::" + System.currentTimeMillis() + ":Txn #" + id  + ": timeout!!");
+			System.err.println(type + ":: " + System.currentTimeMillis() + ":Txn #" + id  + ": timeout!!");
 		}
 
 	}
@@ -151,7 +156,7 @@ public class TMServer {
 		timerList.get(id).cancel();
 		TimerTask abortTxn = new AbortTxn(id);
 		timerList.put(id, abortTxn);
-		System.out.println("TMServer::new timer");
+		System.out.println(type + "::" + "new timer");
 		timer.schedule(abortTxn, TIMEOUT_DELAY);
 	}
 	

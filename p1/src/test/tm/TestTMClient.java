@@ -157,6 +157,8 @@ public class TestTMClient {
 		try{
 			result = tm.commit(id);
 		} catch (CrashException e){
+			TMClient.deleteInstance();
+			LockManager.reset();
 			System.out.println("commit crashed!");
 		}
 		resetTM();
@@ -179,6 +181,9 @@ public class TestTMClient {
 	public void crashTM2Test() throws DeadlockException, CrashException, InterruptedException, ClassNotFoundException, IOException {
 		int crashLocation = 2;
 		TMClient tm = TMClient.getInstance();
+		carServer.setTimeout(120000);
+		roomServer.setTimeout(120000);
+		tm.setTimeout(120000);
 		
 		int id = tm.start();
 		String location = "MONTREAL";
@@ -202,26 +207,22 @@ public class TestTMClient {
 		try{
 			result = tm.commit(id);
 		} catch (CrashException e){
-			System.out.println("commit crashed!");
+			TMClient.deleteInstance();
+			LockManager.reset();
+			System.out.println(e.getMessage());
 		}
-		resetTM();
-		tm = TMClient.getInstance();
 		
 		assertFalse(result); //transaction failed
-		Thread.sleep(6000);
-		
-		//no timeout
-		result = carClient.start(id);
-		assertTrue(result);
-		carClient.abort(id);
 		result = roomClient.start(id);
+		assertTrue(result);
+		result = carClient.start(id);
 		assertFalse(result);
 		
 		
 		
 		//check persistence. should only work for car.
 		ResourceManagerImpl newCarServer = new ResourceManagerImpl("carRM");
-		assertEquals(100, newCarServer.queryCars(id, location));
+		assertEquals(63, newCarServer.queryCars(id, location));
 		ResourceManagerImpl newRoomServer = new ResourceManagerImpl("roomRM");
 		assertEquals(0,newRoomServer.queryRooms(id, location));
 
@@ -243,7 +244,7 @@ public class TestTMClient {
 		carClient.addCars(id, location, numCars, carPrice);
 		
 		boolean result = tm.commit(id);
-		
+		assertTrue(result);
 		result = false;
 		id = tm.start();
 		carPrice = 102;
@@ -257,30 +258,38 @@ public class TestTMClient {
 		try{
 			result = tm.commit(id);
 		} catch (CrashException e){
-			System.out.println("commit crashed!");
+
+			TMClient.deleteInstance();
+			LockManager.reset();
+			System.err.println(e.getMessage());
 		}
-		resetTM();
-		tm = TMClient.getInstance();
 		
-		assertFalse(result); //transaction failed
-		Thread.sleep(6000);
+//		assertFalse(result); //transaction failed
 		
 		//no timeout
-		result = carClient.start(id);
-		assertTrue(result);
-		carClient.abort(id);
-		result = roomClient.start(id);
-		assertTrue(result);
-		roomClient.abort(id);
+//		result = carClient.start(id);
+//		assertTrue(result);
+//		carClient.abort(id);
+//		result = roomClient.start(id);
+//		assertTrue(result);
+//		roomClient.abort(id);
+//		
+		
+		// check persistence. both should commit.
 		
 		
-		//check persistence. both should commit.
-
+		id = 100;
+		carServer.start(id);
+		assertEquals(id, carServer.queryCars(id, location));
+		
 		ResourceManagerImpl newCarServer = new ResourceManagerImpl("carRM");
+		newCarServer.start(id);
 		assertEquals(100, newCarServer.queryCars(id, location));
+		newCarServer.commit(100);
 		ResourceManagerImpl newRoomServer = new ResourceManagerImpl("roomRM");
+		newRoomServer.start(id);
 		assertEquals(99,newRoomServer.queryRooms(id, location));
-
+		newRoomServer.commit(100);
 		
 		
 	}
@@ -289,7 +298,7 @@ public class TestTMClient {
 	public void crashTM4Test() throws DeadlockException, CrashException, InterruptedException, ClassNotFoundException, IOException {
 		int crashLocation = 4;
 		TMClient tm = TMClient.getInstance();
-		
+		carServer.setTimeout(5000);
 		int id = tm.start();
 		String location = "MONTREAL";
 		int numCars = 63;
@@ -312,7 +321,9 @@ public class TestTMClient {
 		try{
 			result = tm.commit(id);
 		} catch (CrashException e){
-			System.out.println("commit crashed!");
+			TMClient.deleteInstance();
+			LockManager.reset();
+			System.out.println(e.getMessage());
 		}
 		resetTM();
 		tm = TMClient.getInstance();
@@ -322,7 +333,7 @@ public class TestTMClient {
 		
 		//no timeout
 		result = carClient.start(id);
-		assertFalse(result);
+		assertTrue(result);
 		carClient.abort(id);
 		result = roomClient.start(id);
 		assertTrue(result);
@@ -331,15 +342,22 @@ public class TestTMClient {
 		
 		//check persistence. both should commit.
 		ResourceManagerImpl newRoomServer = new ResourceManagerImpl("roomRM");
+		id = 100;
+		newRoomServer.start(id);
 		assertEquals(0,newRoomServer.queryRooms(id, location));
-		assertEquals(0,roomServer.queryRooms(id, location));
+		newRoomServer.commit(id);
 		ResourceManagerImpl newCarServer = new ResourceManagerImpl("carRM");
+		newCarServer.start(id);
 		assertEquals(63, newCarServer.queryCars(id, location));
-		
+		newCarServer.commit(id);
 	}
 	
 	@Test
 	public void crashRM1Test() throws DeadlockException, CrashException, InterruptedException, ClassNotFoundException, IOException {
+		/*
+		 * RM crashes before completing abort
+		 */
+		
 		int crashLocation = 1;
 		TMClient tm = TMClient.getInstance();
 		
@@ -365,11 +383,15 @@ public class TestTMClient {
 		(new Thread(){
 			public void run(){
 				try {
-					Thread.sleep(50);
+					Thread.sleep(100);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-				carClient.setCrashLocation(-1);
+				try {
+					((MWTestClient) carClient).setRM(new ResourceManagerImpl("carRM"));
+				} catch (ClassNotFoundException | IOException e) {
+					e.printStackTrace();
+				}
 			}
 		}).start();
 		
@@ -407,11 +429,15 @@ public class TestTMClient {
 		(new Thread(){
 			public void run(){
 				try {
-					Thread.sleep(50);
+					Thread.sleep(100);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-				carClient.setCrashLocation(-1);
+				try {
+					carServer = new ResourceManagerImpl("carRM");
+				} catch (ClassNotFoundException | IOException e) {
+					e.printStackTrace();
+				}
 			}
 		}).start();
 		

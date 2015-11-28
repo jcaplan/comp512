@@ -28,11 +28,10 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 	private int crashLocation = -1;
 	private Crash crash;
 	Object syncLock = new Object();
-	// Basic operations on RMItem //
-
+	static String name;
     public ResourceManagerImpl() throws NamingException, IOException, ClassNotFoundException {
-
-        this((String)(((Context) new InitialContext().lookup("java:comp/env")).lookup("service-name")));
+        this(name = (String)(((Context) new InitialContext().lookup("java:comp/env")).lookup("service-name")));
+        	
     }
 
     public ResourceManagerImpl(String serviceName) throws IOException, ClassNotFoundException {
@@ -185,6 +184,8 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 			int value = 0;
 			if (curObj != null) {
 				value = curObj.getCount();
+			} else {
+				Trace.info("RM::queryNum: did not find data...");
 			}
 			Trace.info("RM::queryNum(" + id + ", " + key + ") OK: " + value);
 			return value;

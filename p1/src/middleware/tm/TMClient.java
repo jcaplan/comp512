@@ -21,8 +21,8 @@ import middleware.client.MWClientInterface;
 
 public class TMClient {
 
-	private static final int TIMEOUT_DELAY = 1000;
-	private static final int COMMIT_TIMEOUT_SECONDS = 5;
+	private int TIMEOUT_DELAY = 60000;
+	private int COMMIT_TIMEOUT_DELAY = 100;
 	
 	private int crashLocation = -1;
 	private Crash crash;
@@ -122,7 +122,7 @@ public class TMClient {
 		try {
 			voteResult = prepareCommit(id,rms);
 		} catch (CrashException e){
-			//TODO
+			System.err.println(e.getMessage());
 		}
 		
 		//TODO CRASH LOCATION 1
@@ -142,6 +142,8 @@ public class TMClient {
 			for(MWClientInterface rm : rms){
 				try {
 					rm.commit(id);
+					//Crash here
+					
 				} catch (CrashException e) {
 					failedList.add(rm);
 					System.out.println("RM crashed during commit");
@@ -158,13 +160,14 @@ public class TMClient {
 					while(failed){
 						try {
 							rm.commit(id);
+							removeTxn(id);
 							failed = false;
 						} catch ( CrashException e){
 							System.out.println("RM retry commit still failed");
 						}
 						if(failed){
 							try {
-								Thread.sleep(50);
+								Thread.sleep(500);
 							} catch (InterruptedException e) {
 								e.printStackTrace();
 							}
@@ -182,7 +185,7 @@ public class TMClient {
 		//TODO crash here
 		
 		if(crashLocation == 3){
-			crash.crash("TM crashses after processing all votes");
+			crash.crash("TM crashes after processing all commits");
 		}
 		//Log here
 		//TODO crash here
@@ -232,7 +235,7 @@ public class TMClient {
 				task.cancel(true);
 			} else {
 				try {
-					result &= task.get(COMMIT_TIMEOUT_SECONDS,TimeUnit.SECONDS);
+					result &= task.get(COMMIT_TIMEOUT_DELAY,TimeUnit.SECONDS);
 					System.out.println("TM receives new result: " + (result ? "YES" : "NO"));
 				} catch (InterruptedException | ExecutionException e) {
 					result = false;
@@ -254,6 +257,7 @@ public class TMClient {
 		HashSet<MWClientInterface> rms = rmList.get(id);
 		
 		if(rms == null){
+			System.out.println("TMClient::could not find rms " + id);
 			return false;
 		}
 		
@@ -275,6 +279,7 @@ public class TMClient {
 					try {
 						rm.abort(id);
 						failed = false;
+						System.out.println("TMClient:: Rm retry abort succeeded");
 					} catch ( CrashException e){
 						System.out.println("RM retry abort still failed");
 					}
@@ -404,5 +409,13 @@ public class TMClient {
 	
 	public void setCrash(Crash c){
 		crash = c;
+	}
+	
+	public void setTimeout(int timeout){
+		TIMEOUT_DELAY = timeout;
+	}
+	
+	public void setCommitTimeout(int timeout){
+		COMMIT_TIMEOUT_DELAY = timeout;
 	}
 }

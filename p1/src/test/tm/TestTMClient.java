@@ -365,9 +365,6 @@ public class TestTMClient {
 		
 		int crashLocation = 1;
 		TMClient tm = TMClient.getInstance();
-		carServer.setTimeout(120000);
-		roomServer.setTimeout(120000);
-		tm.setTimeout(120000);
 		int id = tm.start();
 		String location = "MONTREAL";
 		int numCars = 63;
@@ -437,12 +434,13 @@ public class TestTMClient {
 		(new Thread(){
 			public void run(){
 				try {
-					Thread.sleep(100);
+					Thread.sleep(3000);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 				try {
-					carServer = new ResourceManagerImpl("carRM");
+					System.out.println("RM back up!");
+					((MWTestClient) carClient).setRM(new ResourceManagerImpl("carRM"));
 				} catch (ClassNotFoundException | IOException e) {
 					e.printStackTrace();
 				}
@@ -486,5 +484,7 @@ public class TestTMClient {
 		assertFalse(result); //transaction passes after retry
 		
 	}
+	
+
 	
 }

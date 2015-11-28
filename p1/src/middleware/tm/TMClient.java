@@ -22,7 +22,7 @@ import middleware.client.MWClientInterface;
 public class TMClient {
 
 	private int TIMEOUT_DELAY = 60000;
-	private int COMMIT_TIMEOUT_DELAY = 100;
+	private int COMMIT_TIMEOUT_DELAY = 1000;
 	
 	private int crashLocation = -1;
 	private Crash crash;
@@ -228,7 +228,7 @@ public class TMClient {
 			
 		}		
 		
-		
+		int count = 0;
 		boolean result = true;
 		for(FutureTask<Boolean> task : taskList){
 			if(!result){

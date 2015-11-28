@@ -176,5 +176,11 @@ public interface ResourceManager {
     
     @WebMethod 
     public boolean shutdown();
+    
+    @WebMethod
+    public void setCrashRM(int rm, int location);
+    
+    @WebMethod
+    public void setCrashTM(int location);
     			
 }

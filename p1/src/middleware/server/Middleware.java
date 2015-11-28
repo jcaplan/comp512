@@ -215,7 +215,32 @@ public class Middleware implements ResourceManager {
 		
 		return true;
 	}
+	
+	public void setCrashRM(int rm, int location){
+		switch(rm){
+		case FLIGHT_CLIENT:
+			flightClient.setCrashType(false);
+			flightClient.setCrashLocation(location);
+			break;
+		case ROOM_CLIENT:
+			roomClient.setCrashType(false);
+			roomClient.setCrashLocation(location);
+			break;
+		case CAR_CLIENT:
+			carClient.setCrashType(false);
+			carClient.setCrashLocation(location);
+			break;
+		case CUSTOMER_CLIENT:
+			custClient.setCrashType(false);
+			custClient.setCrashLocation(location);
+			break;
+		}
+	}
 
+	public void setCrashTM(int location){
+		TMClient.getInstance().setCrash(new WSCrash());
+		TMClient.getInstance().setCrashLocation(location);
+	}
 	// Flight operations //
 
 	// Create a new flight, or add seats to existing flight.

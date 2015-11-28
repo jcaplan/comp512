@@ -740,6 +740,38 @@ public class Client extends client.WSClient {
 				e.printStackTrace();
 			}	
 			break;
+		case 27: // RM crash
+			if(arguments.size() != 3){
+				wrongNumber();
+				break;
+			}
+			int rm = getInt(arguments.elementAt(1));
+			int loc = getInt(arguments.elementAt(2));
+			System.out.println("crashing RM");
+			try{
+				proxy.crashRM(rm,loc);
+			} catch (Exception e) {
+				System.out.println("EXCEPTION: ");
+				System.out.println(e.getMessage());
+				e.printStackTrace();
+			}	
+			break;
+		case 28: // TM crash
+			if(arguments.size() != 2){
+				wrongNumber();
+				break;
+			}
+			loc = getInt(arguments.elementAt(1));
+			System.out.println("crashing RM");
+			try{
+				proxy.crashTM(loc);
+			} catch (Exception e) {
+				System.out.println("EXCEPTION: ");
+				System.out.println(e.getMessage());
+				e.printStackTrace();
+			}	
+			break;
+			
 		default:
 			System.out.println("The interface does not support this command.");
 			break;
@@ -812,6 +844,12 @@ public class Client extends client.WSClient {
 			return 25;
 		else if (argument.compareToIgnoreCase("shutdown") == 0)
 			return 26;
+		else if (argument.compareToIgnoreCase("crashRM") == 0){
+			return 27;
+		} else if (argument.compareToIgnoreCase("crashTM") == 0){
+			return 28;
+		}
+		
 		else
 			return 666;
 	}

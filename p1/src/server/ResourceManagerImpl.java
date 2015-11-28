@@ -28,15 +28,15 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 	private int crashLocation = -1;
 	private Crash crash;
 	Object syncLock = new Object();
-	static String name;
+	String name;
     public ResourceManagerImpl() throws NamingException, IOException, ClassNotFoundException {
-        this(name = (String)(((Context) new InitialContext().lookup("java:comp/env")).lookup("service-name")));
-        	
-    }
+        this((String)(((Context) new InitialContext().lookup("java:comp/env")).lookup("service-name")));
+     }
 
     public ResourceManagerImpl(String serviceName) throws IOException, ClassNotFoundException {
         tmServer = new TMServer(serviceName);
         m_itemHT = tmServer.getCommittedTable();
+        name = serviceName;
     }
 
 	@Override
@@ -605,6 +605,7 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 
 		//TODO  before record
 		if(crashLocation == 3){
+			System.out.println(name + " crashes before returning vote");
 			crash.crash("RM crashes before returning vote");
 		}
 		//If(!tm.hasTransaction(id) return false;
@@ -636,7 +637,7 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 	       }).start();
         }
         
-        
+        System.out.println(name + ": votes: " + canCommit);
         return canCommit;
 	}
 	

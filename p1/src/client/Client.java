@@ -765,7 +765,7 @@ public class Client extends client.WSClient {
 			
 			try{
 				int loc = getInt(arguments.elementAt(1));
-				System.out.println("crashing RM");
+				System.out.println("crashing TM");
 				proxy.setCrashTM(loc);
 			} catch (Exception e) {
 				System.out.println("EXCEPTION: ");

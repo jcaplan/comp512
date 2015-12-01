@@ -223,6 +223,11 @@ public class TMClient {
 			
 			//TODO crash here
 			if(crashLocation == 4){
+				try {
+					Thread.sleep(500);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 				crash.crash("TM crashes after sending one vote request");
 			}
 			

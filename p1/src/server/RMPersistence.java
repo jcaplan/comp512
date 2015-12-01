@@ -67,7 +67,18 @@ public class RMPersistence {
         }
 
         Map<String, RMItem> changeToRedo = loadRedoCommitInfo();
-        boolean redoSucceed = applyChangeToShadow(changeToRedo);
+        boolean redoSucceed = true;
+        if (!changeToRedo.isEmpty()){
+            System.out.println("Going to redo: " + changeToRedo.toString());
+            redoSucceed = applyChangeToShadow(changeToRedo);
+            System.out.println("Redo succeed: "+ redoSucceed);
+            BufferedReader br = new BufferedReader(new FileReader(masterRecordPath));
+            String master = br.readLine();
+            String shadowCopyPath = master.contains("1")? tablePath2 : tablePath1;
+            RMHashtable tab = (RMHashtable) readObjectFromPath(shadowCopyPath);
+            System.out.println("Shadow copy: " + tab.toString());
+        }
+
         if (!redoSucceed) {
             txnRecords.get(txnToRedo).add("abort");
             txnToRedo = -1;

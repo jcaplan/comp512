@@ -36,6 +36,7 @@ public class TMServer {
         int txnRedo = rmPersistence.redoLastCommit();
         if (txnRedo > 0){
             activeTnxs.add(txnRedo);
+            System.out.println("Redid txn: " + txnRedo);
         }
         timerList = new HashMap<>();
         timer = new Timer();
@@ -102,6 +103,13 @@ public class TMServer {
 
 
         boolean committedToStorage = rmPersistence.changeShadowPointer();
+        try {
+            System.out.println("committed table in storage: " + rmPersistence.recoverRMTable().toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
         if (!committedToStorage) {
             return false;
         }

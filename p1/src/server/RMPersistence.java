@@ -56,15 +56,7 @@ public class RMPersistence {
     // don't need synchronized because it's called in constructor only
     public int redoLastCommit() throws IOException, ClassNotFoundException {
         HashMap<Integer, Set<String>> txnRecords =  (HashMap<Integer, Set<String>>) readObjectFromPath(recordLocation);
-        int txnToRedo = -1; // -1 means no txn needs undo
-        for (int id : txnRecords.keySet()){
-            Set<String> records = txnRecords.get(id);
-            if (!records.contains("commit") && records.contains("yes"))
-                txnToRedo = id;
-            // abort any transactions that haven't voted
-            else if(!records.contains("commit") && !records.contains("abort"))
-                records.add("abort");
-        }
+        int txnToRedo = getTxnToRedo(txnRecords);
 
         Map<String, RMItem> changeToRedo = loadRedoCommitInfo();
         boolean redoSucceed = true;
@@ -87,6 +79,30 @@ public class RMPersistence {
         writeObjectToPath(txnRecords, recordLocation);
         return txnToRedo;
     }
+
+    
+    public int getTxnToRedo(){
+    	try {
+			return getTxnToRedo((HashMap<Integer, Set<String>>) readObjectFromPath(recordLocation));
+		} catch (ClassNotFoundException | IOException e) {
+			e.printStackTrace();
+		}
+    	return -1;
+    }
+    
+	private int getTxnToRedo(HashMap<Integer, Set<String>> txnRecords) {
+		int txnToRedo = -1; // -1 means no txn needs undo
+        for (int id : txnRecords.keySet()){
+            Set<String> records = txnRecords.get(id);
+            if (!records.contains("commit") && !records.contains("abort") && records.contains("yes"))
+                txnToRedo = id;
+            // abort any transactions that haven't voted
+            else if(!records.contains("yes") && !records.contains("abort")){
+                records.add("abort");
+            }
+        }
+		return txnToRedo;
+	}
 
     public synchronized boolean saveTxnRecord(int xid, String record) {
 
@@ -139,7 +155,7 @@ public class RMPersistence {
 
     }
 
-    private Map<String, RMItem> loadRedoCommitInfo(){
+    public Map<String, RMItem> loadRedoCommitInfo(){
         File f = new File(redoInfoPath);
         Map<String,RMItem> redoInfo;
         if (f.exists()){

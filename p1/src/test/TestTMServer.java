@@ -45,7 +45,7 @@ public class TestTMServer {
 	}
 	
 	@Test
-	public void testAbort(){
+	public void testAbort() throws CrashException{
 		String location = "MONTREAL";
 		int id = 1;
 		int numCars = 50;

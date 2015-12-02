@@ -287,10 +287,12 @@ public class TMClient {
 						System.out.println("TMClient:: Rm retry abort succeeded");
 					} catch ( CrashException e){
 						System.out.println("RM retry abort still failed");
+					} catch ( Exception e) {
+						System.out.println("RM retry abort still failed");
 					}
 					if(failed){
 						try {
-							Thread.sleep(50);
+							Thread.sleep(500);
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}

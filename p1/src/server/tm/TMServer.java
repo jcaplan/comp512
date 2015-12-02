@@ -15,7 +15,8 @@ import server.RMPersistence;
 public class TMServer {
 
     //txnWriteList store keys of items that a txn has written
-	private HashMap<Integer,Set<String>> txnWriteList;
+
+	private HashMap<Integer,WriteList> txnWriteList;
     private RMPersistence rmPersistence;
     private Set<Integer> activeTnxs;
     private static int TIMEOUT_DELAY = 60000;
@@ -23,7 +24,6 @@ public class TMServer {
     Timer timer;
     private RMHashtable table;
 
-    private Map<Integer, Map<String, RMItem>> redoCommitInfo;
     String type;
 
 
@@ -32,15 +32,30 @@ public class TMServer {
         rmPersistence = new RMPersistence(rmType);
         type = rmType;
         // AT MOST ONE txn with yes vote but no commit/abort are loaded
-        activeTnxs = new HashSet<>();
-        int txnRedo = rmPersistence.redoLastCommit();
-        if (txnRedo > 0){
-            activeTnxs.add(txnRedo);
-            System.out.println("Redid txn: " + txnRedo);
-        }
+
         timerList = new HashMap<>();
         timer = new Timer();
         this.table = rmPersistence.recoverRMTable();
+        System.out.println("recovered table on startup: " + this.table.toString());
+        
+        activeTnxs = new HashSet<>();
+        int txnRedo = rmPersistence.getTxnToRedo();
+        if (txnRedo > 0){
+            activeTnxs.add(txnRedo);
+            txnWriteList.put(txnRedo, new WriteList());
+
+            System.out.println("Reloaded incomplete txn: " + txnRedo);
+
+            Map<String, RMItem> commitMap = rmPersistence.loadRedoCommitInfo();
+            for(String key : commitMap.keySet()){
+            	RMItem item = (RMItem)table.get(key);
+            	if(item != null){
+            		writeData(txnRedo, key, item);
+            	}
+            	table.put(key, commitMap.get(key));
+            }
+            
+        }
 	}
 
     public RMHashtable getCommittedTable(){
@@ -58,7 +73,7 @@ public class TMServer {
             return false;
         Map<String,RMItem> redoInfo = new HashMap<>();
 
-        for (String k : txnWriteList.get(id))
+        for (String k : txnWriteList.get(id).writeList.keySet())
             redoInfo.put(k, (RMItem) table.get(k));
         boolean saveSuccess = rmPersistence.saveRedoCommitInfo(redoInfo) &&
                  rmPersistence.applyChangeToShadow(redoInfo) && rmPersistence.saveTxnRecord(id, "yes");
@@ -69,11 +84,34 @@ public class TMServer {
         return saveSuccess;
     }
 
-	public void modifyData(int id, String key) {
-        resetTimer(id);
-        if (txnWriteList.containsKey(id))
-		    txnWriteList.get(id).add(key);
+	
+	public boolean writeData(int id, String key, RMItem value) {
+		WriteList writeList = txnWriteList.get(id);
+		if(writeList == null){
+			return false;
+		}
+		if(value != null){
+			writeList.writeItem(key, value.copy());
+		} else {
+			writeList.writeItem(key, null);
+		}
+		return true;
 	}
+	
+	public boolean removeData(int id, String key, RMItem value) {
+		WriteList writeList = txnWriteList.get(id);
+		if(writeList == null){
+			return false;
+		}
+		
+		if(value != null){
+			return writeList.writeItem(key, value.copy());
+		}
+	
+		return false;
+	}
+	
+	
 
 	public synchronized boolean start(int id){
 		System.out.println(type + "::" + "start txn " + id);
@@ -82,7 +120,7 @@ public class TMServer {
 			System.out.println(activeTnxs);
 			return false;
 		} else {
-			txnWriteList.put(id, new HashSet<String>());
+			txnWriteList.put(id, new WriteList());
             activeTnxs.add(id);
             rmPersistence.saveTxnRecord(id,"start");
             TimerTask abortTxn = new AbortTxn(id);
@@ -101,15 +139,8 @@ public class TMServer {
 		}
         removeTimerTask(id);
 
-
         boolean committedToStorage = rmPersistence.changeShadowPointer();
-        try {
-            System.out.println("committed table in storage: " + rmPersistence.recoverRMTable().toString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
+           
         if (!committedToStorage) {
             return false;
         }
@@ -126,22 +157,19 @@ public class TMServer {
             Set<String> txnRecord = rmPersistence.loadTxnRecord(id);
             return txnRecord.contains("abort");
         }
-        RMHashtable lastCommittedTable;
-        try {
-            lastCommittedTable = rmPersistence.recoverRMTable();
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-            return false;
-        }
+      
 
 
-
-        for (String key : txnWriteList.get(id)){
-            if (lastCommittedTable.containsKey(key))
-                table.put(key,lastCommittedTable.get(key));
-            else
-                table.remove(key);
-        }
+		HashMap<String,RMItem> map = txnWriteList.get(id).writeList;
+		for(String key : map.keySet()){
+			if(map.get(key)!= null){
+				table.put(key, map.get(key));
+			} else {
+				System.out.println("!!!!!!>>>>>>>!!!!!!TXN" + id + " removes " + key);
+				table.remove(key);
+			}
+			
+		}
         txnWriteList.remove(id);
         activeTnxs.remove(id);
         return rmPersistence.saveTxnRecord(id,"abort");
@@ -182,4 +210,27 @@ public class TMServer {
 	public void setTimeout(int timeout){
 		TIMEOUT_DELAY = timeout;
 	}
+	
+
+	
+	private class WriteList{
+		
+		HashMap<String, RMItem> writeList;
+		
+		public WriteList(){
+			writeList = new HashMap<>();
+		}
+		
+		public boolean writeItem(String key, RMItem value){
+			if(!writeList.containsKey(key)){
+				writeList.put(key, value);
+				return true;
+			} else {
+				return false;
+			}
+		}
+		
+	}
+	
+	
 }

@@ -1,6 +1,7 @@
 package middleware.client;
 
 import crash.Crash;
+import crash.CrashException;
 import lockmanager.DeadlockException;
 import lockmanager.LockManager;
 import lockmanager.TrxnObj;
@@ -19,12 +20,13 @@ public class MWClient extends WSClient implements MWClientInterface{
 		this.lockManager = lockManager;
 	}
 	
-	public boolean abort(int id){
+	public boolean abort(int id) throws CrashException{
 		boolean result = false;
 		try {
 			result = proxy.abort(id);
 		} catch (Exception e) {
-			e.printStackTrace();
+//			e.printStackTrace();
+			throw new CrashException("abort crashed");
 		}
 		return result;
 	}
@@ -39,12 +41,14 @@ public class MWClient extends WSClient implements MWClientInterface{
 		return result;
 	}
 	
-	public boolean commit(int id){
+	public boolean commit(int id) throws CrashException{
 		boolean result = false;
 		try {
 			result = proxy.commit(id);
 		} catch (Exception e) {
-			e.printStackTrace();
+//			e.printStackTrace();
+			throw new CrashException("commit crashed");
+			
 		}
 		return result;
 	}

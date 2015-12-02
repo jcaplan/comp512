@@ -63,4 +63,9 @@ public class ReservedItem extends RMItem {
         return s.toLowerCase();
     }
 
+	@Override
+	public RMItem copy() {
+		return new ReservedItem(getKey(), getLocation(), getCount(), getPrice());
+	}
+
 }

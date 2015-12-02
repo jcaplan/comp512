@@ -192,7 +192,7 @@ public class TestTMClient {
 		int carPrice = 101;
 		
 		carClient.addCars(id, location, numCars, carPrice);
-		
+		roomClient.addRooms(id, location, numCars, carPrice);
 		boolean result = tm.commit(id);
 		
 		result = false;
@@ -223,9 +223,11 @@ public class TestTMClient {
 		
 		//check persistence. should only work for car.
 		ResourceManagerImpl newCarServer = new ResourceManagerImpl("carRM");
-		assertEquals(63, newCarServer.queryCars(id, location));
+		assertEquals(100, newCarServer.queryCars(id, location));
 		ResourceManagerImpl newRoomServer = new ResourceManagerImpl("roomRM");
-		assertEquals(0,newRoomServer.queryRooms(id, location));
+		newRoomServer.start(100);
+		assertEquals(162,newRoomServer.queryRooms(100, location));
+		newRoomServer.commit(100);
 
 		
 		
@@ -299,7 +301,7 @@ public class TestTMClient {
 	public void crashTM4Test() throws DeadlockException, CrashException, InterruptedException, ClassNotFoundException, IOException {
 		int crashLocation = 4;
 		TMClient tm = TMClient.getInstance();
-		carServer.setTimeout(5000);
+		carServer.setTimeout(1000);
 		int id = tm.start();
 		String location = "MONTREAL";
 		int numCars = 63;
@@ -328,18 +330,14 @@ public class TestTMClient {
 		}
 		resetTM();
 		tm = TMClient.getInstance();
+		carServer.start(101);
+		assertEquals(63,carServer.queryCars(101, location));
+		roomServer.start(101);
+		assertEquals(0,roomServer.queryRooms(101, location));
+		
 		
 		assertFalse(result); //transaction failed
 		Thread.sleep(3000);
-		
-		//no timeout
-		result = carClient.start(id);
-		assertTrue(result);
-		carClient.abort(id);
-		result = roomClient.start(id);
-		assertTrue(result);
-		roomClient.abort(id);
-		
 		
 		//check persistence. both should commit.
 		ResourceManagerImpl newRoomServer = new ResourceManagerImpl("roomRM");
@@ -404,7 +402,7 @@ public class TestTMClient {
 		
 
 		assertTrue(result); //transaction passes after retry
-		
+		Thread.sleep(500);
 	}
 	
 	@Test
@@ -451,6 +449,17 @@ public class TestTMClient {
 		
 
 		assertTrue(result); //transaction passes after retry
+		
+		
+		ResourceManagerImpl newRoomServer = new ResourceManagerImpl("roomRM");
+		id = 100;
+		newRoomServer.start(id);
+		assertEquals(99,newRoomServer.queryRooms(id, location));
+		newRoomServer.commit(id);
+		ResourceManagerImpl newCarServer = new ResourceManagerImpl("carRM");
+		newCarServer.start(id);
+		assertEquals(100, newCarServer.queryCars(id, location));
+		newCarServer.commit(id);
 		
 	}
 	

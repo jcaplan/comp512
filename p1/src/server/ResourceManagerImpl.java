@@ -87,7 +87,7 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 	private void setPrice(int id, ReservableItem item, int price){
 		//Checks that the transaction ID is valid...
 		if (tmServer.isTxnActive(id)){
-            tmServer.modifyData(id, item.getKey());
+            tmServer.writeData(id, item.getKey(),item);
             item.setPrice(price);
         }
 
@@ -95,14 +95,14 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 	
 	private void setCount(int id, ReservableItem item, int count){
         if (tmServer.isTxnActive(id)){
-            tmServer.modifyData(id, item.getKey());
+            tmServer.writeData(id, item.getKey(),item);
             item.setCount(count);
         }
 	}
 	
 	private void setReserved(int id, ReservableItem item, int reserved){
         if (tmServer.isTxnActive(id)){
-            tmServer.modifyData(id, item.getKey());
+            tmServer.writeData(id, item.getKey(),item);
             item.setReserved(reserved);
         }
 	}
@@ -111,13 +111,14 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 		ReservedItem item = cust.getReservedItem(key);
 
         if (tmServer.isTxnActive(id)) {
-            tmServer.modifyData(id, cust.getKey());
+            tmServer.writeData(id, cust.getKey(),item);
             cust.reserve(key, location, price);
         }
 	}
 	
 	// Read a data item.
 	private RMItem readData(int id, String key) {
+		System.out.println("txn active "+ id + ": " + tmServer.isTxnActive(id));
         RMItem result = null;
 		synchronized (m_itemHT) {
             if (tmServer.isTxnActive(id))
@@ -131,7 +132,7 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 		synchronized (m_itemHT) {
 			TMServer tm = tmServer;
             if (tm.isTxnActive(id)){
-                tm.modifyData(id, key);
+                tm.writeData(id, key,(RMItem)m_itemHT.get(key));
                 m_itemHT.put(key, value);
             }
 		}
@@ -143,7 +144,7 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 		synchronized (m_itemHT) {
 			TMServer tm = tmServer;
 			if (tm.isTxnActive(id)){
-                tm.modifyData(id,key);
+                tm.removeData(id,key, (RMItem)m_itemHT.get(key));
                 result =  (RMItem) m_itemHT.remove(key);
             }
 		}
@@ -181,6 +182,7 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 		Trace.info("RM::queryNum(" + id + ", " + key + ") called.");
 		synchronized(syncLock){
 			ReservableItem curObj = (ReservableItem) readData(id, key);
+			System.out.println("queried object:" + curObj);
 			int value = 0;
 			if (curObj != null) {
 				value = curObj.getCount();
@@ -659,5 +661,7 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 	public void setTimeout(int timeout){
 		tmServer.setTimeout(timeout);
 	}
+	
+
 
 }

@@ -86,6 +86,7 @@ public class TMServer {
 
 	
 	public boolean writeData(int id, String key, RMItem value) {
+		resetTimer(id);
 		WriteList writeList = txnWriteList.get(id);
 		if(writeList == null){
 			return false;
@@ -99,6 +100,7 @@ public class TMServer {
 	}
 	
 	public boolean removeData(int id, String key, RMItem value) {
+		resetTimer(id);
 		WriteList writeList = txnWriteList.get(id);
 		if(writeList == null){
 			return false;
@@ -192,7 +194,7 @@ public class TMServer {
 	}
 
 
-	private void resetTimer(int id) {
+	public void resetTimer(int id) {
 		timerList.get(id).cancel();
 		TimerTask abortTxn = new AbortTxn(id);
 		timerList.put(id, abortTxn);

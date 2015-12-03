@@ -119,6 +119,7 @@ public class ResourceManagerImpl implements server.ws.ResourceManager {
 	// Read a data item.
 	private RMItem readData(int id, String key) {
 		System.out.println("txn active "+ id + ": " + tmServer.isTxnActive(id));
+		tmServer.resetTimer(id);
         RMItem result = null;
 		synchronized (m_itemHT) {
             if (tmServer.isTxnActive(id))

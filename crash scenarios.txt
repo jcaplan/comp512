@@ -1,0 +1,19 @@
+TM
+
+1: crash before sending vote reply
+2: crash after sending vote reply to 1 rm
+3: TM crashes after processing all commits
+4: TM crashes after sending one vote request
+
+
+RM
+
+
+	public static final int FLIGHT_CLIENT = 2;
+	public static final int ROOM_CLIENT = 1;
+	public static final int CAR_CLIENT = 0;
+	public static final int CUSTOMER_CLIENT = 3;
+
+1: crash before aborting
+2: crashes before committing
+

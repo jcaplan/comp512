@@ -1,0 +1,351 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Beamer Presentation
+% LaTeX Template
+% Version 1.0 (10/11/12)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND THEMES
+%----------------------------------------------------------------------------------------
+
+\documentclass[10pt]{beamer}
+
+\mode<presentation> { 
+
+% The Beamer class comes with a number of default slide themes
+% which change the colors and layouts of slides. Below this is a list
+% of all the themes, uncomment each in turn to see what they look like.
+
+%\usetheme{default}
+%\usetheme{AnnArbor}
+%\usetheme{Antibes}
+%\usetheme{Bergen}
+% \usetheme{Berkeley}
+%\usetheme{Berlin}
+%\usetheme{Boadilla}
+%\usetheme{CambridgeUS}
+% \usetheme{Copenhagen}
+%\usetheme{Darmstadt}
+%\usetheme{Dresden}
+%\usetheme{Frankfurt}
+%\usetheme{Goettingen}
+%\usetheme{Hannover}
+%\usetheme{Ilmenau}
+%\usetheme{JuanLesPins}
+%\usetheme{Luebeck}
+% \usetheme{Madrid}
+%\usetheme{Malmoe}
+%\usetheme{Marburg}
+\usetheme{Montpellier}
+%\usetheme{PaloAlto}
+%\usetheme{Pittsburgh}
+%\usetheme{Rochester}
+%\usetheme{Singapore}
+%\usetheme{Szeged}
+%\usetheme{Warsaw}
+
+% As well as themes, the Beamer class has a number of color themes
+% for any slide theme. Uncomment each of these in turn to see how it
+% changes the colors of your current slide theme.
+
+% \usecolortheme{albatross}
+% \usecolortheme{beaver}
+% \usecolortheme{beetle}
+% \usecolortheme{crane}
+% \usecolortheme{dolphin}
+% \usecolortheme{dove}
+% \usecolortheme{fly}
+% \usecolortheme{lily}
+% \usecolortheme{orchid}
+% \usecolortheme{rose}
+% \usecolortheme{seagull}
+% \usecolortheme{seahorse}
+% \usecolortheme{whale}
+% \usecolortheme{wolverine}
+
+%\setbeamertemplate{footline} % To remove the footer line in all slides uncomment this line
+%\setbeamertemplate{footline}[page number] % To replace the footer line in all slides with a simple slide count uncomment this line
+
+%\setbeamertemplate{navigation symbols}{} % To remove the navigation symbols from the bottom of all slides uncomment this line
+}
+
+\usepackage[]{algorithm2e}
+
+\usepackage{graphicx} % Allows including images
+\usepackage{booktabs} % Allows the use of \toprule, \midrule and \bottomrule in tables
+% \usepackage{subcaption}
+% \usepackage{float}
+\usepackage[font=scriptsize]{subfig}
+\usepackage[font=scriptsize,labelfont=bf]{caption}
+
+\usepackage{courier} % Required for the courier font
+\usepackage{listings}
+
+
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+\definecolor{mylisting}{rgb}{1,0.98,0.756}
+\lstset{ %
+  backgroundcolor=\color{mylisting},   % choose the background color; you must add \usepackage{color} or \usepackage{xcolor}
+  basicstyle=\footnotesize\ttfamily,        % the size of the fonts that are used for the code
+  breakatwhitespace=false,         % sets if automatic breaks should only happen at whitespace
+  breaklines=true,                 % sets automatic line breaking
+  captionpos=b,                    % sets the caption-position to bottom
+  commentstyle=\color{mygreen},    % comment style
+  deletekeywords={...},            % if you want to delete keywords from the given language
+  escapeinside={\%*}{*)},          % if you want to add LaTeX within your code
+  extendedchars=true,              % lets you use non-ASCII characters; for 8-bits encodings only, does not work with UTF-8
+  frame=single,                    % adds a frame around the code
+  keepspaces=true,                 % keeps spaces in text, useful for keeping indentation of code (possibly needs columns=flexible)
+  keywordstyle=\color{blue},       % keyword style
+  language=Java,                 % the language of the code
+  morekeywords={*,...},            % if you want to add more keywords to the set
+  numbers=left,                    % where to put the line-numbers; possible values are (none, left, right)
+  numbersep=5pt,                   % how far the line-numbers are from the code
+  numberstyle=\tiny\color{mygray}, % the style that is used for the line-numbers
+  rulecolor=\color{black},         % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. comments (green here))
+  showspaces=false,                % show spaces everywhere adding particular underscores; it overrides 'showstringspaces'
+  showstringspaces=false,          % underline spaces within strings only
+  showtabs=false,                  % show tabs within strings adding particular underscores
+  stepnumber=2,                    % the step between two line-numbers. If it's 1, each line will be numbered
+  stringstyle=\color{mymauve},     % string literal style
+  tabsize=2,                       % sets default tabsize to 2 spaces
+  title=\lstname ,                  % show the filename of files included with \lstinputlisting; also try caption instead of title
+  moredelim=**[is][\color{red}]{@!}{@!},
+}
+
+
+
+\newcommand\toc{\begin{frame}
+\tableofcontents[
+  currentsection,
+  sectionstyle=show/shaded,
+  subsectionstyle=show/shaded/shaded
+]
+\end{frame}
+}
+
+\setbeamertemplate{headline}{}
+\setbeamertemplate{navigation symbols}{}%remove navigation symbols
+\setbeamertemplate{footline}[frame number]
+\setbeamertemplate{bibliography item}{[\theenumiv]}
+
+
+\newcommand{\addfigure}[2]{
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[scale=#1]{figures/#2} 
+\end{figure}
+
+}
+
+
+
+%----------------------------------------------------------------------------------------
+%	TITLE PAGE
+%----------------------------------------------------------------------------------------
+
+\title[Comp 512 Project - Milestone 2]{Comp 512 Project - Milestone 3} % The
+% short title appears at the bottom of every slide, the full title is only on the title page
+
+\author{Jonah Caplan, HaiTong Yang - Group 28} % Your name
+\institute % Your institution as it will appear on the bottom of every slide, may be shorthand to save space
+{
+McGill University \\ % Your institution for the title page
+\medskip
+\textit{jonah.caplan@mail.mcgill.ca,hai.yang@mail.mcgill.ca} % Your email address
+}
+\date{December 3, 2015} % Date, can be changed to a custom date
+
+\begin{document}
+
+\begin{frame}
+\titlepage % Print the title page as the first slide
+\end{frame}
+
+\begin{frame}
+\frametitle{System Overview}
+\addfigure{0.5}{arch.pdf}
+\end{frame}
+
+\begin{frame}
+\frametitle{System Overview}
+\addfigure{0.5}{system.pdf}
+\end{frame}
+
+\begin{frame}
+\frametitle{2PC}
+A successful read and write operation.
+\addfigure{0.3}{sequence.pdf}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Timeout algorithm at MW}
+\SetKwFor{Upon}{upon}{do}{end}
+\begin{algorithm}[H]
+%  \KwData{this text}
+%  \KwResult{how to write algorithm with \LaTeX2e }
+ \Upon{initialization}{
+ 	Timer t\;
+ 	List of TimerTask tList\;
+ } 
+ \Upon{Start(txnID)}{
+  add new TimerTask for txnID to tList and schedule task\;
+  }
+  \Upon{enlist(txnId)}{
+  cancel previous task\;
+  schedule new task\;
+  }
+  \Upon{commit(txnId) or abort(txnId)}{
+  cancel previous task\;
+  remove txnId from list\;
+  }
+  \Upon{timerExpires(txnId)}{
+  	abort(txnId)\;
+  }
+ 
+ 
+ \end{algorithm}
+
+(basically the same for RM)
+\end{frame}
+
+\begin{frame}
+\frametitle{Implementing and Testing Crash Scenarios}
+\begin{itemize}
+  \item Starting and stopping tomcat servers is expensive.
+  \item Don't know how to kill/restart app instead of server.
+  \item Want to debug across network interfaces.
+  \item Implement testbench that bypasses web services.
+  \item Comprehensive debugging, JUnit, etc. now possible.
+\end{itemize}
+\addfigure{0.3}{crash-class.pdf}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Running crash scenarios}
+\begin{itemize}
+  \item Bypass middleware and run tests through Transaction Manager and
+  MWTestClient.
+  \item Assign unique ID to each point in program where crash should be
+  injected.
+  \item Client (or testbench) specifies crash location at beginning of scenario.
+\end{itemize}
+
+\begin{lstlisting}
+id = tm.start();
+carPrice = 102;
+numCars = 37;
+carClient.addCars(id, location, numCars, carPrice);
+int roomPrice = 103;
+int numRooms = 99;
+roomClient.addRooms(id, location, numRooms, roomPrice);
+@!tm.setCrash(new TestTMCrash());
+tm.setCrashLocation(crashLocation);@!
+try{
+  result = tm.commit(id);
+} catch (CrashException e){
+  TMClient.deleteInstance();
+  LockManager.reset();
+  System.out.println("commit crashed!");
+}
+\end{lstlisting}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Handling crashes}
+\textbf{Crashes in RM:}
+\begin{itemize}
+  \item \texttt{prepareVote()} fails on any RM $\rightarrow$ TM aborts
+  \item \texttt{abort()} or \texttt{commit()} fails on any RM $\rightarrow$
+  TM repeats requests.
+\end{itemize}
+
+\textbf{Crashes in TM:}
+\begin{itemize}
+  \item if \texttt{prepareVote()} never excecuted $\rightarrow$ RM txn will
+  timeout.
+  \item if \texttt{prepareVote()} executed $\rightarrow$ RM txn waits
+  indefinitely.
+\end{itemize}
+
+\textbf{Limitations:}
+\begin{itemize}
+  \item Web services made it difficult to implement messages from RM to MW
+  (limited granularity for crash injection).
+  \item Assume logging never fails.
+\end{itemize}
+\textbf{Improvements:}
+\begin{itemize}
+  \item TM should take note in case where RM does not reply after voting yes
+  successfully and move on as if RM voted yes, while periodically checking RM
+  status.
+\end{itemize}
+
+\end{frame}
+
+
+\begin{frame}
+\frametitle{RM Recovery}
+\textbf{RM strategy:}
+\begin{itemize}
+  \item Read record when starting up.
+  \item Restore any transaction that voted yes to \texttt{prepareCommit()}.
+  \item Abort any transaction that started but did not vote.
+\end{itemize}
+
+\textbf{TM strategy:}
+\begin{itemize}
+  \item If TM sends vote after reboot, RM will find abort record and vote no.
+  \item If TM sends commit or abort after reboot, then appropriate action is
+  taken.
+\end{itemize}
+
+\textbf{Storing update for txn $t$}
+\begin{enumerate}
+  \item Check current shadow copy $S$.
+  \item Copy $S' \leftarrow S$.
+  \item Use write List for $t$ to update $S'$.
+  \item Write $S'$ to disk.
+\end{enumerate}
+
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Room for improvement}
+
+\begin{itemize}
+  \item Main copy + shadow copy must fit in memory at same
+time. 
+\item Better to find lower level solutions (e.g. DMA copy and file indexing to
+allow in place modification of shadow copy).
+\item Keep record for changes to shadow copy to allow targeted modifications
+instead of blindly copying everything. 
+\end{itemize}
+
+\end{frame}
+
+% \begin{frame}
+% \frametitle{Performance results}
+% 
+% \addfigure{0.4}{perf-txn.pdf}
+% \end{frame}
+% 
+% \begin{frame}
+% \frametitle{Where number of clients becomes the problem}
+% \addfigure{0.4}{perf-client.pdf}
+% \end{frame}
+
+\end{document} 

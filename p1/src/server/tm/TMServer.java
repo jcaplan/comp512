@@ -50,7 +50,7 @@ public class TMServer {
             for(String key : commitMap.keySet()){
             	RMItem item = (RMItem)table.get(key);
             	if(item != null){
-            		writeData(txnRedo, key, item);
+            		txnWriteList.get(txnRedo).writeItem(key, item);
             	}
             	table.put(key, commitMap.get(key));
             }
